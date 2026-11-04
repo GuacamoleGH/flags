@@ -38,7 +38,7 @@ export function optionalAuth(req: AuthenticatedRequest, _res: Response, next: Ne
 
   try {
     const secret = getJwtSecret();
-    const decoded = jwt.verify(token, secret) as { id: number; username: string };
+    jwt.verify(token, secret);
 
     const db = getDb();
     // Validar que la sesión existe y no ha expirado
