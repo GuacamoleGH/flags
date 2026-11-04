@@ -459,7 +459,7 @@
   width: 100%;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1100px) and (min-width: 769px) {
   .control-bar-centered-content {
     display: flex;
     flex-wrap: wrap;
@@ -473,9 +473,248 @@
   }
   .control-bar-col-left {
     order: 1;
+    width: auto;
+    gap: 20px;
   }
   .control-bar-col-right {
     order: 2;
+    width: auto;
+  }
+}
+
+/* =============================================================================
+   Adaptación Móvil Completa (Smartphones <= 768px)
+   ============================================================================= */
+@media (max-width: 768px) {
+  .site-container {
+    padding: 0 10px;
+  }
+
+  .main-content {
+    padding: 6px 0 32px 0;
+  }
+
+  /* Cabecera Móvil Compacta y Equilibrada */
+  .site-header {
+    height: auto;
+    padding: 8px 0;
+  }
+
+  .header-content {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    justify-content: space-between;
+  }
+
+  .brand-link {
+    font-size: 1.05rem;
+    gap: 6px;
+  }
+
+  .brand-logo-img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .brand-badge {
+    font-size: 0.68rem;
+    padding: 1px 6px;
+  }
+
+  .header-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    padding: 4px 10px;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .theme-toggle-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .lang-btn {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+  }
+
+  /* Selector de Modo de Juego en Móvil */
+  .game-mode-selector-bar {
+    gap: 6px;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+
+  .mode-bar-label {
+    display: none; /* Ahorra espacio vertical innecesario en pantallas pequeñas */
+  }
+
+  .mode-pills-wrap {
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .mode-pill-btn {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  /* Barra de Control de Bandera Activa en Móvil */
+  .active-quiz-control-bar {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: var(--radius-md);
+    top: 4px;
+  }
+
+  .control-bar-centered-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* Fila 1 Móvil: Herramientas en fila superior y bandera centrada */
+  .control-bar-col-left {
+    order: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .col-left-tools {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .btn-pause-run {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+  }
+
+  .active-flag-continent-badge {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+
+  .btn-skip-flag {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* Bandera en Móvil: Amplia, nítida y perfectamente centrada */
+  .active-flag-preview-box {
+    width: 130px;
+    height: 82px;
+    margin: 2px auto 0 auto;
+  }
+
+  /* Fila 2 Móvil: Botones Anterior/Siguiente a los extremos e Input en el centro */
+  .control-bar-col-center {
+    order: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 100%;
+    gap: 8px;
+  }
+
+  .nav-flag-btn.large-nav-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    font-size: 1.3rem;
+  }
+
+  .nav-flag-btn .nav-btn-text {
+    display: none; /* En móvil solo mostramos la flecha táctil */
+  }
+
+  .active-input-container {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    width: auto;
+  }
+
+  .active-input-label {
+    font-size: 0.72rem;
+    margin-bottom: 2px;
+  }
+
+  .active-country-input {
+    height: 44px;
+    font-size: 1.05rem;
+    padding: 6px 12px;
+    text-align: center;
+  }
+
+  /* Fila 3 Móvil: Puntuación/Tiempo a la izquierda y botones de acción a la derecha */
+  .control-bar-col-right {
+    order: 3;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .quiz-top-stats {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .top-stat-item {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .top-stat-label {
+    font-size: 0.68rem;
+  }
+
+  .top-stat-number,
+  .top-stat-timer {
+    font-size: 1.15rem;
+  }
+
+  .top-actions-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-quiz-action {
+    padding: 7px 14px;
+    font-size: 0.82rem;
   }
 }
 
@@ -515,6 +754,10 @@
   color: var(--color-text-primary);
   transition: var(--transition-fast);
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .nav-flag-btn.large-nav-btn:hover {

@@ -186,8 +186,9 @@ export class QuizView {
 
             <!-- Centro: Navegación y Campo Principal de Entrada -->
             <div class="control-bar-col-center">
-              <button class="nav-flag-btn large-nav-btn" id="btn-flag-prev" title="${t('btnPrev')}">
-                ${t('btnPrev')}
+              <button class="nav-flag-btn large-nav-btn" id="btn-flag-prev" title="${t('btnPrev')}" aria-label="${t('btnPrev')}">
+                <span class="nav-btn-arrow">←</span>
+                <span class="nav-btn-text">${t('btnPrev').replace('←', '').trim()}</span>
               </button>
 
               <div class="active-input-container">
@@ -204,8 +205,9 @@ export class QuizView {
                 />
               </div>
 
-              <button class="nav-flag-btn large-nav-btn" id="btn-flag-next" title="${t('btnNext')}">
-                ${t('btnNext')}
+              <button class="nav-flag-btn large-nav-btn" id="btn-flag-next" title="${t('btnNext')}" aria-label="${t('btnNext')}">
+                <span class="nav-btn-text">${t('btnNext').replace('→', '').trim()}</span>
+                <span class="nav-btn-arrow">→</span>
               </button>
             </div>
 
