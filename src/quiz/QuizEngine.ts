@@ -6,11 +6,12 @@
 // =============================================================================
 
 /**
- * @fileoverview Motor de estado, temporizador y orquestación del Quiz de Banderas.
+ * @fileoverview Motor de estado, temporizador, orden aleatorio y navegación de bandera activa.
  * @spec REQ-02, REQ-03, REQ-04, REQ-05
  */
 
 import { COUNTRIES, COUNTRIES_BY_CODE } from '../data/countries.data';
+import type { Country } from '../common/types/country';
 import { validateCountryAnswer } from './validation';
 import { getLanguage } from '../common/i18n';
 
@@ -22,9 +23,22 @@ export interface QuizState {
   guessedCodes: Set<string>;
   guessedDetails: Map<string, { matchedName: string; isShortcut: boolean }>;
   revealedRemaining: boolean;
+  shuffledCodes: string[];
+  activeCode: string;
 }
 
 export type QuizStateListener = (state: QuizState) => void;
+
+function shuffleArray<T>(array: readonly T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = arr[i]!;
+    arr[i] = arr[j]!;
+    arr[j] = temp;
+  }
+  return arr;
+}
 
 class QuizEngine {
   private status: QuizStatus = 'idle';
@@ -33,7 +47,19 @@ class QuizEngine {
   private guessedCodes = new Set<string>();
   private guessedDetails = new Map<string, { matchedName: string; isShortcut: boolean }>();
   private revealedRemaining = false;
+  private shuffledCodes: string[] = [];
+  private activeCode: string = '';
   private listeners = new Set<QuizStateListener>();
+
+  constructor() {
+    this.initRandomOrder();
+  }
+
+  private initRandomOrder(): void {
+    const allCodes = COUNTRIES.map(c => c.code);
+    this.shuffledCodes = shuffleArray(allCodes);
+    this.activeCode = this.shuffledCodes[0] || 'es';
+  }
 
   public getSnapshot(): QuizState {
     return {
@@ -41,8 +67,14 @@ class QuizEngine {
       elapsedSeconds: this.elapsedSeconds,
       guessedCodes: new Set(this.guessedCodes),
       guessedDetails: new Map(this.guessedDetails),
-      revealedRemaining: this.revealedRemaining
+      revealedRemaining: this.revealedRemaining,
+      shuffledCodes: [...this.shuffledCodes],
+      activeCode: this.activeCode
     };
+  }
+
+  public getActiveCountry(): Country {
+    return COUNTRIES_BY_CODE.get(this.activeCode) || COUNTRIES[0]!;
   }
 
   public subscribe(listener: QuizStateListener): () => void {
@@ -64,6 +96,7 @@ class QuizEngine {
     this.guessedCodes.clear();
     this.guessedDetails.clear();
     this.revealedRemaining = false;
+    this.initRandomOrder();
 
     this.stopTimer();
     this.timerInterval = setInterval(() => {
@@ -81,26 +114,81 @@ class QuizEngine {
     }
   }
 
-  public submitAnswerForCountry(code: string, rawInput: string): boolean {
+  public setActiveCode(code: string): void {
+    if (COUNTRIES_BY_CODE.has(code)) {
+      this.activeCode = code;
+      this.notify();
+    }
+  }
+
+  public nextFlag(): void {
+    if (this.shuffledCodes.length === 0) return;
+    const currentIndex = this.shuffledCodes.indexOf(this.activeCode);
+    
+    // Buscar la siguiente bandera pendiente empezando desde currentIndex + 1
+    for (let offset = 1; offset < this.shuffledCodes.length; offset++) {
+      const idx = (currentIndex + offset) % this.shuffledCodes.length;
+      const code = this.shuffledCodes[idx]!;
+      if (!this.guessedCodes.has(code)) {
+        this.activeCode = code;
+        this.notify();
+        return;
+      }
+    }
+
+    // Si todas están acertadas o no quedan pendientes en bucle, avanzar cíclicamente
+    const nextIdx = (currentIndex + 1) % this.shuffledCodes.length;
+    this.activeCode = this.shuffledCodes[nextIdx] || this.activeCode;
+    this.notify();
+  }
+
+  public prevFlag(): void {
+    if (this.shuffledCodes.length === 0) return;
+    const currentIndex = this.shuffledCodes.indexOf(this.activeCode);
+
+    // Buscar la bandera pendiente anterior
+    for (let offset = 1; offset < this.shuffledCodes.length; offset++) {
+      let idx = (currentIndex - offset) % this.shuffledCodes.length;
+      if (idx < 0) idx += this.shuffledCodes.length;
+      const code = this.shuffledCodes[idx]!;
+      if (!this.guessedCodes.has(code)) {
+        this.activeCode = code;
+        this.notify();
+        return;
+      }
+    }
+
+    let prevIdx = (currentIndex - 1) % this.shuffledCodes.length;
+    if (prevIdx < 0) prevIdx += this.shuffledCodes.length;
+    this.activeCode = this.shuffledCodes[prevIdx] || this.activeCode;
+    this.notify();
+  }
+
+  /**
+   * Intenta validar la respuesta para la bandera activa actual.
+   * Si es correcta:
+   * - Marca la bandera como acertada.
+   * - Salta automáticamente a la siguiente bandera pendiente.
+   * - Devuelve true.
+   */
+  public submitActiveAnswer(rawInput: string): boolean {
     if (this.status !== 'running') {
-      // Si el usuario escribe y pulsa Enter antes de pulsar "Start Quiz", iniciamos el quiz automáticamente
       this.start();
     }
 
-    if (this.guessedCodes.has(code)) {
-      return true; // Ya acertado
+    const currentCountry = this.getActiveCountry();
+    if (this.guessedCodes.has(currentCountry.code)) {
+      this.nextFlag();
+      return true;
     }
 
-    const country = COUNTRIES_BY_CODE.get(code);
-    if (!country) return false;
-
     const currentLang = getLanguage();
-    const result = validateCountryAnswer(country, rawInput, currentLang);
+    const result = validateCountryAnswer(currentCountry, rawInput, currentLang);
 
     if (result.matched) {
-      this.guessedCodes.add(code);
-      this.guessedDetails.set(code, {
-        matchedName: result.matchedName || (currentLang === 'es' ? country.nameEs : country.nameEn),
+      this.guessedCodes.add(currentCountry.code);
+      this.guessedDetails.set(currentCountry.code, {
+        matchedName: result.matchedName || (currentLang === 'es' ? currentCountry.nameEs : currentCountry.nameEn),
         isShortcut: Boolean(result.isCompoundShortcut)
       });
 
@@ -108,9 +196,12 @@ class QuizEngine {
       if (this.guessedCodes.size === COUNTRIES.length) {
         this.status = 'completed';
         this.stopTimer();
+        this.notify();
+        return true;
       }
 
-      this.notify();
+      // Avanzar automáticamente a la siguiente bandera no acertada
+      this.nextFlag();
       return true;
     }
 
@@ -132,6 +223,7 @@ class QuizEngine {
     this.guessedCodes.clear();
     this.guessedDetails.clear();
     this.revealedRemaining = false;
+    this.initRandomOrder();
     this.notify();
   }
 

@@ -6,12 +6,11 @@
 // =============================================================================
 
 /**
- * @fileoverview Vista principal del Quiz de Banderas con cuadrícula horizontal responsive y HUD interactivo.
+ * @fileoverview Vista del Quiz con panel superior de respuesta activa y cuadrícula aleatoria.
  * @spec REQ-02, REQ-03, REQ-04, REQ-05
  */
 
-import { COUNTRIES, COUNTRIES_BY_CODE } from '../data/countries.data';
-import type { Country } from '../common/types/country';
+import { COUNTRIES_BY_CODE } from '../data/countries.data';
 import { quizEngine, type QuizState } from './QuizEngine';
 import { t, getLanguage } from '../common/i18n';
 import { apiService, type ScoreSubmissionResult } from '../common/services/api.service';
@@ -20,8 +19,6 @@ import { openAuthModal } from '../common/components/AuthModal';
 export class QuizView {
   private container: HTMLElement;
   private unsubscribeEngine?: () => void;
-  private selectedContinent = 'all';
-  private searchQuery = '';
   private currentScoreResult: ScoreSubmissionResult | null = null;
   private resultModalOpen = false;
 
@@ -36,6 +33,7 @@ export class QuizView {
 
     this.unsubscribeEngine = quizEngine.subscribe((state) => {
       this.updateHud(state);
+      this.updateActiveFlagCard(state);
 
       if (state.status === 'completed' || state.status === 'abandoned') {
         if (!this.resultModalOpen) {
@@ -55,290 +53,257 @@ export class QuizView {
 
   private render(): void {
     const state = quizEngine.getSnapshot();
+    const activeCountry = quizEngine.getActiveCountry();
 
     this.container.innerHTML = `
       <div class="site-container">
-        <!-- HUD Principal -->
-        <div class="quiz-hud-bar" id="quiz-hud">
-          <div class="hud-left">
-            <div class="hud-timer-badge">
-              <span>⏱️</span>
-              <span id="hud-timer-val">${quizEngine.formatTime(state.elapsedSeconds)}</span>
-            </div>
-
-            <div class="hud-stat-box">
-              <span class="hud-stat-label">${t('lblProgress')}</span>
-              <div class="hud-stat-value" id="hud-progress-val">
-                <span>${state.guessedCodes.size}</span> / 196
-                <small style="font-size: 0.8rem; color: var(--color-text-muted); font-weight: normal;">
-                  (${Math.round((state.guessedCodes.size / 196) * 100)}%)
-                </small>
-              </div>
-            </div>
-
-            <div class="hud-stat-box">
-              <span class="hud-stat-label">${t('lblPending')}</span>
-              <div class="hud-stat-value" id="hud-pending-val">${196 - state.guessedCodes.size}</div>
-            </div>
+        <!-- Barra de Control y Respuesta Activa Superior (Fijada) -->
+        <div class="active-quiz-control-bar" id="active-quiz-bar">
+          <!-- Bandera Activa a Resolver -->
+          <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
+            <img
+              id="active-flag-img"
+              src="${activeCountry.flagUrl}"
+              alt="Bandera a responder"
+              class="active-flag-img"
+            />
           </div>
 
-          <div class="hud-right">
-            ${state.status === 'idle' ? `
-              <button class="btn-primary" id="btn-quiz-start">▶ ${t('btnStart')}</button>
-            ` : ''}
+          <!-- Navegación Anterior -->
+          <button class="nav-flag-btn" id="btn-flag-prev" title="${t('btnPrev')}">
+            ${t('btnPrev')}
+          </button>
 
-            ${state.status === 'running' ? `
-              <button class="btn-danger" id="btn-quiz-giveup">${t('btnGiveUp')}</button>
-              <button class="btn-outline" id="btn-quiz-restart">${t('btnRestart')}</button>
-            ` : ''}
+          <!-- Campo Principal de Entrada -->
+          <div class="active-input-container">
+            <label class="active-input-label" for="active-country-input">
+              ${t('lblEnterCountry')}
+            </label>
+            <input
+              type="text"
+              id="active-country-input"
+              class="active-country-input"
+              placeholder="${t('placeholderAnswer')}"
+              autocomplete="off"
+              autofocus
+              spellcheck="false"
+            />
+          </div>
 
-            ${state.status === 'completed' || state.status === 'abandoned' ? `
-              <button class="btn-primary" id="btn-quiz-again">↺ ${t('btnPlayAgain')}</button>
-            ` : ''}
+          <!-- Navegación Siguiente -->
+          <button class="nav-flag-btn" id="btn-flag-next" title="${t('btnNext')}">
+            ${t('btnNext')}
+          </button>
+
+          <!-- Panel de Estadísticas y Temporizador -->
+          <div class="quiz-top-stats">
+            <div class="top-stat-item">
+              <span class="top-stat-label">${t('lblProgress')}</span>
+              <span class="top-stat-number" id="top-score-display">
+                ${state.guessedCodes.size}/196
+              </span>
+            </div>
+
+            <div class="top-stat-item">
+              <span class="top-stat-label">${t('lblTime')}</span>
+              <span class="top-stat-timer" id="top-timer-display">
+                ${quizEngine.formatTime(state.elapsedSeconds)}
+              </span>
+            </div>
+
+            <div class="top-actions-wrap">
+              ${state.status === 'running' ? `
+                <button class="btn-link-danger" id="btn-action-giveup">${t('btnGiveUp')}</button>
+                <button class="btn-link-subtle" id="btn-action-restart">${t('btnRestart')}</button>
+              ` : `
+                <button class="btn-primary" id="btn-action-start" style="padding: 6px 14px; font-size: 0.85rem;">
+                  ▶ ${t('btnStart')}
+                </button>
+              `}
+            </div>
           </div>
         </div>
 
-        <!-- Barra de Filtros y Búsqueda Horizontal -->
-        <div class="quiz-filter-bar">
-          <div class="continent-pills">
-            <button class="continent-pill ${this.selectedContinent === 'all' ? 'active' : ''}" data-continent="all">${t('continentAll')}</button>
-            <button class="continent-pill ${this.selectedContinent === 'Europa' ? 'active' : ''}" data-continent="Europa">${t('continentEurope')}</button>
-            <button class="continent-pill ${this.selectedContinent === 'Asia' ? 'active' : ''}" data-continent="Asia">${t('continentAsia')}</button>
-            <button class="continent-pill ${this.selectedContinent === 'África' ? 'active' : ''}" data-continent="África">${t('continentAfrica')}</button>
-            <button class="continent-pill ${this.selectedContinent === 'América' ? 'active' : ''}" data-continent="América">${t('continentAmericas')}</button>
-            <button class="continent-pill ${this.selectedContinent === 'Oceanía' ? 'active' : ''}" data-continent="Oceanía">${t('continentOceania')}</button>
-          </div>
-
-          <input
-            type="text"
-            class="filter-search-input"
-            id="filter-search-input"
-            placeholder="${t('placeholderSearch')}"
-            value="${this.searchQuery}"
-          />
-        </div>
-
-        <!-- Cuadrícula Horizontal de Banderas -->
-        <div class="flags-horizontal-grid" id="flags-grid"></div>
+        <!-- Cuadrícula de Banderas en Orden Aleatorio -->
+        <div class="flags-matrix-grid" id="flags-matrix-grid"></div>
       </div>
     `;
 
-    this.bindHudEvents();
-    this.renderFlagsGrid();
+    this.bindControls();
+    this.renderFlagsMatrix();
+    this.focusInput();
   }
 
-  private bindHudEvents(): void {
-    this.container.querySelector('#btn-quiz-start')?.addEventListener('click', () => {
-      quizEngine.start();
-      this.render();
-      this.focusFirstUnansweredInput();
+  private bindControls(): void {
+    const input = this.container.querySelector('#active-country-input') as HTMLInputElement;
+
+    const handleAnswerSubmission = () => {
+      const val = input.value.trim();
+      if (!val) return;
+
+      const isCorrect = quizEngine.submitActiveAnswer(val);
+      if (isCorrect) {
+        input.value = '';
+        input.classList.add('flash-success');
+        setTimeout(() => input.classList.remove('flash-success'), 300);
+      }
+    };
+
+    input?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAnswerSubmission();
+      } else if (e.key === 'ArrowRight' && (e.ctrlKey || e.altKey || input.value === '')) {
+        e.preventDefault();
+        quizEngine.nextFlag();
+      } else if (e.key === 'ArrowLeft' && (e.ctrlKey || e.altKey || input.value === '')) {
+        e.preventDefault();
+        quizEngine.prevFlag();
+      }
     });
 
-    this.container.querySelector('#btn-quiz-giveup')?.addEventListener('click', () => {
+    input?.addEventListener('input', () => {
+      handleAnswerSubmission();
+    });
+
+    this.container.querySelector('#btn-flag-prev')?.addEventListener('click', () => {
+      quizEngine.prevFlag();
+      this.focusInput();
+    });
+
+    this.container.querySelector('#btn-flag-next')?.addEventListener('click', () => {
+      quizEngine.nextFlag();
+      this.focusInput();
+    });
+
+    this.container.querySelector('#btn-action-giveup')?.addEventListener('click', () => {
       quizEngine.giveUp();
       this.render();
     });
 
-    this.container.querySelector('#btn-quiz-restart')?.addEventListener('click', () => {
+    this.container.querySelector('#btn-action-restart')?.addEventListener('click', () => {
       quizEngine.restart();
       this.render();
     });
 
-    this.container.querySelector('#btn-quiz-again')?.addEventListener('click', () => {
-      quizEngine.restart();
+    this.container.querySelector('#btn-action-start')?.addEventListener('click', () => {
       quizEngine.start();
       this.render();
-      this.focusFirstUnansweredInput();
-    });
-
-    // Píldoras de continentes
-    this.container.querySelectorAll('.continent-pill').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const target = e.currentTarget as HTMLElement;
-        this.selectedContinent = target.getAttribute('data-continent') || 'all';
-        this.container.querySelectorAll('.continent-pill').forEach(b => b.classList.remove('active'));
-        target.classList.add('active');
-        this.renderFlagsGrid();
-      });
-    });
-
-    // Búsqueda
-    const searchInput = this.container.querySelector('#filter-search-input') as HTMLInputElement;
-    searchInput?.addEventListener('input', (e) => {
-      this.searchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
-      this.renderFlagsGrid();
+      this.focusInput();
     });
   }
 
-  private getFilteredCountries(): readonly Country[] {
-    const lang = getLanguage();
-    return COUNTRIES.filter(c => {
-      // Filtro de continente
-      if (this.selectedContinent !== 'all') {
-        const cont = c.continentEs;
-        if (this.selectedContinent === 'América' && !cont.includes('América')) return false;
-        if (this.selectedContinent !== 'América' && cont !== this.selectedContinent) return false;
-      }
-
-      // Filtro de búsqueda
-      if (this.searchQuery) {
-        const nameActive = lang === 'es' ? c.nameEs.toLowerCase() : c.nameEn.toLowerCase();
-        const code = c.code.toLowerCase();
-        return nameActive.includes(this.searchQuery) || code.includes(this.searchQuery);
-      }
-
-      return true;
-    });
-  }
-
-  private renderFlagsGrid(): void {
-    const grid = this.container.querySelector('#flags-grid');
+  private renderFlagsMatrix(): void {
+    const grid = this.container.querySelector('#flags-matrix-grid');
     if (!grid) return;
 
-    const filtered = this.getFilteredCountries();
     const state = quizEngine.getSnapshot();
     const lang = getLanguage();
 
-    grid.innerHTML = filtered.map(c => {
-      const isGuessed = state.guessedCodes.has(c.code);
-      const isRevealedMissed = !isGuessed && state.revealedRemaining;
-      const countryDisplayName = lang === 'es' ? c.nameEs : c.nameEn;
+    grid.innerHTML = state.shuffledCodes.map(code => {
+      const c = COUNTRIES_BY_CODE.get(code);
+      if (!c) return '';
 
-      let cardClass = 'flag-card';
-      if (isGuessed) cardClass += ' completed';
-      if (isRevealedMissed) cardClass += ' revealed-missed';
+      const isGuessed = state.guessedCodes.has(code);
+      const isRevealed = !isGuessed && state.revealedRemaining;
+      const isActive = state.activeCode === code;
+      const displayName = lang === 'es' ? c.nameEs : c.nameEn;
+
+      let cellClass = 'matrix-flag-cell';
+      if (isActive) cellClass += ' active-target';
+      if (isGuessed) cellClass += ' guessed-correct';
+      if (isRevealed) cellClass += ' revealed-missed';
 
       return `
-        <div class="${cardClass}" id="card-${c.code}" data-code="${c.code}">
-          <div class="flag-image-wrap">
+        <div
+          class="${cellClass}"
+          id="flag-cell-${code}"
+          data-code="${code}"
+          title="${isGuessed || isRevealed ? displayName : 'Haz clic para seleccionar esta bandera'}"
+        >
+          <div class="matrix-flag-wrap">
             <img
-              class="flag-img"
+              class="matrix-flag-img"
               src="${c.flagUrl}"
-              alt="Bandera de ${countryDisplayName}"
+              alt="Bandera"
               loading="lazy"
-              width="240"
-              height="160"
             />
           </div>
-
-          <div class="flag-input-wrap">
-            ${isGuessed ? `
-              <div class="flag-completed-badge" title="${countryDisplayName}">
-                ✓ ${countryDisplayName}
-              </div>
-            ` : isRevealedMissed ? `
-              <div class="flag-revealed-badge" title="${countryDisplayName}">
-                ${countryDisplayName}
-              </div>
-            ` : `
-              <input
-                type="text"
-                class="flag-input"
-                id="input-${c.code}"
-                data-code="${c.code}"
-                placeholder="${t('placeholderAnswer')}"
-                autocomplete="off"
-                spellcheck="false"
-              />
-            `}
+          <div class="matrix-flag-label">
+            ${isGuessed ? `✓ ${displayName}` : isRevealed ? displayName : '&nbsp;'}
           </div>
         </div>
       `;
     }).join('');
 
-    this.bindGridInputEvents();
-  }
-
-  private bindGridInputEvents(): void {
-    const inputs = this.container.querySelectorAll('.flag-input') as NodeListOf<HTMLInputElement>;
-    inputs.forEach(input => {
-      const code = input.getAttribute('data-code');
-      if (!code) return;
-
-      const handleCheck = () => {
-        const val = input.value.trim();
-        if (!val) return;
-
-        const isCorrect = quizEngine.submitAnswerForCountry(code, val);
-        if (isCorrect) {
-          this.updateCardToCorrect(code);
-          this.focusNextUnansweredInput(code);
+    // Permitir hacer clic en cualquier bandera de la cuadrícula para seleccionarla
+    grid.querySelectorAll('.matrix-flag-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const code = cell.getAttribute('data-code');
+        if (code) {
+          quizEngine.setActiveCode(code);
+          this.focusInput();
         }
-      };
-
-      // Al pulsar Enter o al escribir
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          handleCheck();
-        }
-      });
-
-      input.addEventListener('input', () => {
-        handleCheck();
       });
     });
   }
 
-  private updateCardToCorrect(code: string): void {
-    const card = this.container.querySelector(`#card-${code}`);
-    const country = COUNTRIES_BY_CODE.get(code);
-    if (!card || !country) return;
+  private updateActiveFlagCard(state: QuizState): void {
+    const activeCountry = quizEngine.getActiveCountry();
 
+    // Actualizar imagen superior
+    const previewImg = this.container.querySelector('#active-flag-img') as HTMLImageElement;
+    if (previewImg && previewImg.getAttribute('src') !== activeCountry.flagUrl) {
+      previewImg.src = activeCountry.flagUrl;
+      previewImg.alt = `Bandera actual`;
+    }
+
+    // Actualizar clase activa en la cuadrícula
+    this.container.querySelectorAll('.matrix-flag-cell.active-target').forEach(c => {
+      c.classList.remove('active-target');
+    });
+
+    const activeCell = this.container.querySelector(`#flag-cell-${state.activeCode}`);
+    if (activeCell) {
+      activeCell.classList.add('active-target');
+      // Scroll sutil si está fuera de pantalla
+      activeCell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Actualizar banderas acertadas en la cuadrícula
     const lang = getLanguage();
-    const displayName = lang === 'es' ? country.nameEs : country.nameEn;
-
-    card.classList.add('completed');
-    const wrap = card.querySelector('.flag-input-wrap');
-    if (wrap) {
-      wrap.innerHTML = `
-        <div class="flag-completed-badge" title="${displayName}">
-          ✓ ${displayName}
-        </div>
-      `;
-    }
-  }
-
-  private focusFirstUnansweredInput(): void {
-    const firstInput = this.container.querySelector('.flag-input') as HTMLInputElement;
-    if (firstInput) {
-      firstInput.focus();
-    }
-  }
-
-  private focusNextUnansweredInput(currentCode: string): void {
-    const allInputs = Array.from(this.container.querySelectorAll('.flag-input')) as HTMLInputElement[];
-    const currentIndex = allInputs.findIndex(inp => inp.getAttribute('data-code') === currentCode);
-
-    if (currentIndex !== -1 && currentIndex + 1 < allInputs.length) {
-      allInputs[currentIndex + 1]?.focus();
-    } else if (allInputs.length > 0) {
-      allInputs[0]?.focus();
-    }
+    state.guessedCodes.forEach(code => {
+      const cell = this.container.querySelector(`#flag-cell-${code}`);
+      if (cell && !cell.classList.contains('guessed-correct')) {
+        cell.classList.add('guessed-correct');
+        const c = COUNTRIES_BY_CODE.get(code);
+        const label = cell.querySelector('.matrix-flag-label');
+        if (label && c) {
+          const name = lang === 'es' ? c.nameEs : c.nameEn;
+          label.textContent = `✓ ${name}`;
+        }
+      }
+    });
   }
 
   private updateHud(state: QuizState): void {
-    const timerVal = this.container.querySelector('#hud-timer-val');
+    const scoreVal = this.container.querySelector('#top-score-display');
+    if (scoreVal) scoreVal.textContent = `${state.guessedCodes.size}/196`;
+
+    const timerVal = this.container.querySelector('#top-timer-display');
     if (timerVal) timerVal.textContent = quizEngine.formatTime(state.elapsedSeconds);
+  }
 
-    const progressVal = this.container.querySelector('#hud-progress-val');
-    if (progressVal) {
-      progressVal.innerHTML = `
-        <span>${state.guessedCodes.size}</span> / 196
-        <small style="font-size: 0.8rem; color: var(--color-text-muted); font-weight: normal;">
-          (${Math.round((state.guessedCodes.size / 196) * 100)}%)
-        </small>
-      `;
-    }
-
-    const pendingVal = this.container.querySelector('#hud-pending-val');
-    if (pendingVal) pendingVal.textContent = (196 - state.guessedCodes.size).toString();
+  private focusInput(): void {
+    setTimeout(() => {
+      const input = this.container.querySelector('#active-country-input') as HTMLInputElement;
+      input?.focus();
+    }, 50);
   }
 
   private async handleGameFinished(state: QuizState): Promise<void> {
     this.resultModalOpen = true;
 
-    // Enviar resultado a la API
     try {
       this.currentScoreResult = await apiService.submitScore({
         timeSeconds: state.elapsedSeconds,
@@ -347,7 +312,6 @@ export class QuizView {
         language: getLanguage()
       });
 
-      // Si es usuario invitado y completó el quiz, guardar récord en localStorage
       if (this.currentScoreResult.guest && state.status === 'completed') {
         quizEngine.setGuestBestTime(state.elapsedSeconds);
       }
@@ -430,7 +394,6 @@ export class QuizView {
       quizEngine.restart();
       quizEngine.start();
       this.render();
-      this.focusFirstUnansweredInput();
     });
 
     overlay.querySelector('#btn-modal-leaderboard')?.addEventListener('click', () => {
