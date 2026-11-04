@@ -32,7 +32,7 @@ export class ProfileView {
     this.container = document.createElement('div');
     this.container.className = 'profile-page-view';
     const currentUser = apiService.getCurrentUser();
-    this.username = username || currentUser?.username || '';
+    this.username = username ? decodeURIComponent(username) : (currentUser?.username || '');
   }
 
   public async mount(target: HTMLElement): Promise<void> {

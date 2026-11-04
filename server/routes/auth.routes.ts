@@ -19,14 +19,14 @@ import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.middl
 
 export const authRouter = Router();
 
-const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,24}$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_.\s-]{3,24}$/;
 
 authRouter.post('/register', async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { username, password, avatar } = req.body;
 
   if (!username || typeof username !== 'string' || !USERNAME_REGEX.test(username.trim())) {
     res.status(400).json({
-      error: 'El nombre de usuario debe tener entre 3 y 24 caracteres alfanuméricos, guiones o guiones bajos.'
+      error: 'El nombre de usuario debe tener entre 3 y 24 caracteres (letras, números, puntos, guiones o guiones bajos).'
     });
     return;
   }

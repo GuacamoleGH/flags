@@ -134,15 +134,18 @@ export function openAuthModal(initialMode: 'login' | 'register' = 'login', onSuc
       const passwordInput = overlay.querySelector('#auth-password') as HTMLInputElement;
       const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
 
+      const cleanUsername = usernameInput.value.trim();
+      const cleanPassword = passwordInput.value;
+
       errorMessage = '';
       submitBtn.disabled = true;
       submitBtn.textContent = '...';
 
       try {
         if (mode === 'login') {
-          await apiService.login(usernameInput.value, passwordInput.value);
+          await apiService.login(cleanUsername, cleanPassword);
         } else {
-          await apiService.register(usernameInput.value, passwordInput.value, selectedAvatar);
+          await apiService.register(cleanUsername, cleanPassword, selectedAvatar);
         }
         overlay.remove();
         if (onSuccess) onSuccess();
