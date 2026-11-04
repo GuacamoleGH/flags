@@ -47,7 +47,7 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
   header.innerHTML = `
     <div class="site-container header-content">
       <a href="#quiz" class="brand-link">
-        <span class="brand-logo-icon">🚩</span>
+        <img src="/logo.png" alt="GuacamoleGH Flags Logo" class="brand-logo-img" />
         <span>${t('appTitle')}</span>
         <span class="brand-badge">196</span>
       </a>

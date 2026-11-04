@@ -40,7 +40,9 @@ export function openAuthModal(initialMode: 'login' | 'register' = 'login', onSuc
         <button class="modal-close-btn" id="btn-close-modal" aria-label="Cerrar">✕</button>
 
         <div class="modal-header">
-          <div class="modal-trophy-icon">${mode === 'login' ? '🔐' : '🚀'}</div>
+          <div class="modal-trophy-icon">
+            <img src="/logo.png" alt="GuacamoleGH Flags Logo" style="width: 48px; height: 48px; object-fit: contain; border-radius: 10px;" />
+          </div>
           <h2 class="modal-title">${mode === 'login' ? t('authLoginTitle') : t('authRegisterTitle')}</h2>
           <p class="modal-subtitle">GuacamoleGH Flags</p>
         </div>

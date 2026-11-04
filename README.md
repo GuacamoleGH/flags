@@ -1,7 +1,7 @@
-# 🏳️ GuacamoleGH Flags — Country Flag Quiz
-
 <div align="center">
-  <p><strong>Quiz web interactivo bilingüe de banderas de los 196 países oficiales del mundo para el homelab GuacamoleGH</strong></p>
+  <img src="logo.png" width="100" height="100" alt="GuacamoleGH Flags Logo" style="border-radius: 16px; margin-bottom: 12px;" />
+  <h1>🏳️ GuacamoleGH Flags — Country Flag Quiz</h1>
+  <p><strong>Quiz interactivo bilingüe de banderas de los 196 países oficiales del mundo para el homelab GuacamoleGH</strong></p>
   <p>
     <img src="https://img.shields.io/badge/status-v1.0.0%20(196%20Banderas)-00f59b?style=flat-square" alt="Status" />
     <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" />
@@ -16,8 +16,10 @@
 ## 📑 Índice
 
 - [📌 Sobre el proyecto](#about)
+- [🎮 Modos de Juego y Continentes](#gamemodes)
 - [🌍 Criterio y Listado Oficial de los 196 Países](#countries)
 - [⚡ Diseño Horizontal Minimalista y Ergonomía](#design)
+- [🌓 Modo Claro y Modo Oscuro](#themes)
 - [🌐 Soporte Bilingüe (Español / English)](#i18n)
 - [🧠 Autocompletado Inteligente y Validación de Alias](#validation)
 - [👤 Sistema de Cuentas, Rankings y Perfiles](#users)
@@ -39,6 +41,21 @@ Diseñada bajo la identidad visual tecnológica del homelab GuacamoleGH (gama ca
 
 ---
 
+<a name="gamemodes"></a>
+## 🎮 Modos de Juego y Continentes
+
+Permite jugar el desafío completo o seleccionar por regiones:
+- **Mundo entero**: Las 196 banderas oficiales del planeta.
+- **Europa**: 46 países europeos.
+- **Asia**: 47 países asiáticos.
+- **África**: 54 países africanos.
+- **América**: 35 países americanos.
+- **Oceanía**: 14 países de Oceanía.
+
+Cada modo cuenta con su propia tabla de clasificación global en el **Leaderboard**.
+
+---
+
 <a name="countries"></a>
 ## 🌍 Criterio y Listado Oficial de los 196 Países
 
@@ -51,9 +68,9 @@ El catálogo de 196 países del quiz se fundamenta en el estándar internacional
 3. **1 Estado con soberanía de facto reconocida internacionalmente:**
    - **Taiwán** (República de China / `tw`) y reconocimiento de **Kosovo** (`xk`).
 
-Cada uno de los 196 países dispone de:
+Cada país dispone de:
 - Identificador inmutable ISO-3166-1 alfa-2.
-- Bandera vectorial local SVG optimizada (proporción oficial 3:2, sin deformación y 100% offline).
+- Bandera vectorial local SVG optimizada (proporción 3:2, sin deformación y 100% offline).
 - Nombre oficial, capital y continente en español e inglés.
 - Diccionario exhaustivo de alias oficiales y abreviaciones compuestas reconocidas.
 
@@ -63,11 +80,20 @@ Cada uno de los 196 países dispone de:
 ## ⚡ Diseño Horizontal Minimalista y Ergonomía
 
 A diferencia de los quizzes tradicionales verticales de una sola columna, **GuacamoleGH Flags** maximiza el espacio horizontal:
-- **Cuadrícula adaptativa amplia**: 6 a 8 columnas de banderas en pantallas de escritorio panorámicas, 4 a 5 en portátiles, 3 en tablets y 2 en móviles.
-- **Campo de respuesta integrado por bandera**: cada bandera tiene su campo de texto compacto justo debajo.
-- **Enfoque automático al siguiente país**: al acertar una bandera, la tarjeta se bloquea con insignia verde y el cursor pasa automáticamente a la siguiente bandera pendiente, permitiendo récords de velocidad sin usar el ratón.
-- **Libertad de resolución**: responde en cualquier orden.
-- **Filtros por continente y búsqueda en caliente**: filtra rápidamente Europa, Asia, África, América u Oceanía.
+- **Cuadrícula adaptativa amplia**: 6 a 8 columnas de banderas en escritorio, 4 a 5 en portátiles, 3 en tablets y 2 en móviles.
+- **Barra de control centralizada**: Con vista previa amplia de la bandera activa, botones de navegación anterior/siguiente, temporizador automático desde la primera pulsación y campo de entrada centrado geométricamente.
+- **Enfoque automático al siguiente país**: Al acertar una bandera, se marca en verde con el nombre del país y el foco salta a la siguiente bandera pendiente.
+- **Libertad de resolución**: Responde en cualquier orden haciendo clic en cualquier bandera de la cuadrícula o navegando con flechas.
+
+---
+
+<a name="themes"></a>
+## 🌓 Modo Claro y Modo Oscuro
+
+- **Selector con icono adaptativo**: Muestra una luna en modo claro (para alternar a oscuro) y un sol en modo oscuro (para alternar a claro).
+- **Colores de alto contraste**:
+  - En modo oscuro: Acentos neón, bordes ámbar para la bandera activa y verde para aciertos.
+  - En modo claro: Fondo limpio, bandera activa resaltada en ámbar cálido (`#d97706` y `#fef3c7`), banderas acertadas en verde esmeralda profundo (`#059669` y `#ecfdf5`), y botón Start Quiz con texto blanco de alto contraste sobre verde esmeralda.
 
 ---
 
@@ -78,8 +104,7 @@ El selector de idioma en la barra superior permite alternar instantáneamente en
 - **Español (ES)**
 - **English (EN)**
 
-> **Regla de oro de continuidad:** Cambiar el idioma **nunca reinicia el progreso de la partida en curso**.
-> Las banderas ya acertadas actualizan su nombre al nuevo idioma seleccionado, y los inputs pendientes aceptan respuestas tanto en el idioma activo como en el secundario por cortesía.
+> **Regla de oro de continuidad:** Cambiar el idioma **nunca reinicia el progreso de la partida en curso**. El selector se bloquea durante una partida activa para garantizar la consistencia de la prueba.
 
 ---
 
@@ -118,15 +143,15 @@ Aceptan nombres abreviados configurados tras pulsar Enter o confirmar:
 ## 👤 Sistema de Cuentas, Rankings y Perfiles
 
 - **Modo Invitado 100% Funcional**: Juega sin cuenta, mide tu tiempo y guarda tu récord local en `localStorage`.
-- **Autenticación Soberana**: Registro e inicio de sesión con contraseñas cifradas mediante `bcryptjs` (salt rounds: 10) y sesiones JWT.
+- **Autenticación Soberana**: Registro e inicio de sesión con contraseñas cifradas mediante `bcryptjs` (salt rounds: 10) y sesiones JWT seguras. Admite puntos (`.`), guiones, guiones bajos y acentos en el nombre de usuario.
 - **Rankings Globales (`#leaderboard`)**:
-  - Tabla de mejores tiempos resolviendo las 196 banderas.
+  - Tabla de mejores tiempos por modo de juego (Mundo o continentes).
   - Resolución determinista de empates por orden de consecución.
   - Posición y tiempo destacado del usuario conectado.
 - **Perfil de Jugador (`#profile`)**:
   - Vista pública y privada editable.
   - Selector de avatares arcade (`🚩 Flag Master`, `🧭 Brújula`, `🌍 Globo`, `🗺️ Explorador`, `🦅 Halcón`, `🕹️ Arcade`).
-  - Estadísticas: mejor tiempo, total completadas, total jugadas y tasa de éxito.
+  - Estadísticas: mejor tiempo por modo, partidas completadas, jugadas y porcentaje de acierto.
 - **Historial de Partidas (`#history`)**:
   - Registro de todas las partidas finalizadas o abandonadas.
   - Filtro por completadas/abandonadas y ordenación por fecha o tiempo.
@@ -138,7 +163,7 @@ Aceptan nombres abreviados configurados tras pulsar Enter o confirmar:
 
 El backend Express valida estrictamente las puntuaciones antes de registrarlas en el leaderboard:
 - Tiempos físicamente imposibles (< 25 segundos para 196 banderas) son rechazados automáticamente con código HTTP 400.
-- Validación de correspondencia entre estado completado y 196 aciertos exactos.
+- Validación de correspondencia entre estado completado y aciertos exactos del modo.
 - Las partidas incompletas o abandonadas se registran en el historial personal, pero nunca entran en la tabla de récords globales.
 
 ---
@@ -163,7 +188,7 @@ docker compose up -d --build
 
 | Capa | Tecnología |
 |---|---|
-| **Frontend** | TypeScript 5, Vite 6, CSS3 Moderno (Custom Properties) |
+| **Frontend** | TypeScript 5, Vite 6, CSS3 Moderno (CSS Grid + Custom Properties) |
 | **Backend API** | Node.js 22 LTS, Express, TypeScript (`tsx`) |
 | **Base de Datos** | SQLite (`node:sqlite DatabaseSync`) en modo WAL |
 | **Seguridad** | `bcryptjs` + JWT |
@@ -203,5 +228,5 @@ El proyecto incluye 17 tests unitarios y de integración:
 <a name="license"></a>
 ## 📄 Licencia
 
-MIT License — Copyright (c) 2026 [GuacamoleGH](https://github.com/GuacamoleGH).
+MIT License — Copyright (c) 2026 [GuacamoleGH](https://github.com/GuacamoleGH).  
 Construido con la metodología [dbv-specs-ops](https://github.com/davidbuenov/dbv-specs-ops).
