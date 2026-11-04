@@ -6,8 +6,8 @@
 // =============================================================================
 
 /**
- * @fileoverview Vista del Quiz con panel centralizado, banderas de mayor tamaño,
- * modo de juego por continentes y arranque automático al teclear.
+ * @fileoverview Vista del Quiz con panel centralizado, botones de modo sin iconos,
+ * cambio dinámico de botones de acción y banderas con renderizado limpio.
  * @spec REQ-02, REQ-03, REQ-04, REQ-05
  */
 
@@ -22,6 +22,7 @@ export class QuizView {
   private unsubscribeEngine?: () => void;
   private currentScoreResult: ScoreSubmissionResult | null = null;
   private resultModalOpen = false;
+  private lastRenderedStatus: string = '';
 
   constructor() {
     this.container = document.createElement('div');
@@ -55,30 +56,31 @@ export class QuizView {
   private render(): void {
     const state = quizEngine.getSnapshot();
     const activeCountry = quizEngine.getActiveCountry();
+    this.lastRenderedStatus = state.status;
 
     this.container.innerHTML = `
       <div class="site-container">
-        <!-- Selector de Modo de Juego (Mundo / Continentes) -->
+        <!-- Selector de Modo de Juego (Sin iconos en los botones) -->
         <div class="game-mode-selector-bar">
           <span class="mode-bar-label">${t('lblGameMode')}:</span>
           <div class="mode-pills-wrap">
             <button class="mode-pill-btn ${state.gameMode === 'world' ? 'active' : ''}" data-mode="world">
-              🌍 ${t('modeWorld')}
+              ${t('modeWorld')}
             </button>
             <button class="mode-pill-btn ${state.gameMode === 'europe' ? 'active' : ''}" data-mode="europe">
-              🏰 ${t('modeEurope')}
+              ${t('modeEurope')}
             </button>
             <button class="mode-pill-btn ${state.gameMode === 'asia' ? 'active' : ''}" data-mode="asia">
-              🏯 ${t('modeAsia')}
+              ${t('modeAsia')}
             </button>
             <button class="mode-pill-btn ${state.gameMode === 'africa' ? 'active' : ''}" data-mode="africa">
-              🦁 ${t('modeAfrica')}
+              ${t('modeAfrica')}
             </button>
             <button class="mode-pill-btn ${state.gameMode === 'americas' ? 'active' : ''}" data-mode="americas">
-              🌎 ${t('modeAmericas')}
+              ${t('modeAmericas')}
             </button>
             <button class="mode-pill-btn ${state.gameMode === 'oceania' ? 'active' : ''}" data-mode="oceania">
-              🏝️ ${t('modeOceania')}
+              ${t('modeOceania')}
             </button>
           </div>
         </div>
@@ -86,7 +88,7 @@ export class QuizView {
         <!-- Barra de Control Centralizada y Fija -->
         <div class="active-quiz-control-bar" id="active-quiz-bar">
           <div class="control-bar-centered-content">
-            <!-- Vista Previa de la Bandera Activa (Más grande y sin fondo negro) -->
+            <!-- Vista Previa de la Bandera Activa -->
             <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
               <img
                 id="active-flag-img"
@@ -138,21 +140,14 @@ export class QuizView {
                 </span>
               </div>
 
-              <div class="top-actions-wrap">
-                ${state.status === 'running' ? `
-                  <button class="btn-link-danger" id="btn-action-giveup">${t('btnGiveUp')}</button>
-                  <button class="btn-link-subtle" id="btn-action-restart">${t('btnRestart')}</button>
-                ` : `
-                  <button class="btn-primary" id="btn-action-start" style="padding: 8px 16px; font-size: 0.9rem;">
-                    ▶ ${t('btnStart')}
-                  </button>
-                `}
+              <div class="top-actions-wrap" id="top-actions-container">
+                ${this.renderActionsHtml(state.status)}
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Cuadrícula Matricial de Banderas en Orden Aleatorio -->
+        <!-- Cuadrícula Matricial de Banderas -->
         <div class="flags-matrix-grid" id="flags-matrix-grid"></div>
       </div>
     `;
@@ -160,6 +155,27 @@ export class QuizView {
     this.bindControls();
     this.renderFlagsMatrix();
     this.focusInput();
+  }
+
+  private renderActionsHtml(status: string): string {
+    if (status === 'running') {
+      return `
+        <button class="btn-link-danger" id="btn-action-giveup">${t('btnGiveUp')}</button>
+        <button class="btn-link-subtle" id="btn-action-restart">${t('btnRestart')}</button>
+      `;
+    }
+    if (status === 'completed' || status === 'abandoned') {
+      return `
+        <button class="btn-primary" id="btn-action-again" style="padding: 8px 16px; font-size: 0.9rem;">
+          ↺ ${t('btnPlayAgain')}
+        </button>
+      `;
+    }
+    return `
+      <button class="btn-primary" id="btn-action-start" style="padding: 8px 16px; font-size: 0.9rem;">
+        ▶ ${t('btnStart')}
+      </button>
+    `;
   }
 
   private bindControls(): void {
@@ -190,7 +206,6 @@ export class QuizView {
     };
 
     input?.addEventListener('keydown', (e) => {
-      // Inicia el cronómetro automáticamente con la primera pulsación
       quizEngine.ensureRunningOnTyping();
 
       if (e.key === 'Enter') {
@@ -220,6 +235,10 @@ export class QuizView {
       this.focusInput();
     });
 
+    this.bindActionButtons();
+  }
+
+  private bindActionButtons(): void {
     this.container.querySelector('#btn-action-giveup')?.addEventListener('click', () => {
       quizEngine.giveUp();
       this.render();
@@ -232,6 +251,13 @@ export class QuizView {
     });
 
     this.container.querySelector('#btn-action-start')?.addEventListener('click', () => {
+      quizEngine.start();
+      this.render();
+      this.focusInput();
+    });
+
+    this.container.querySelector('#btn-action-again')?.addEventListener('click', () => {
+      quizEngine.restart();
       quizEngine.start();
       this.render();
       this.focusInput();
@@ -303,7 +329,7 @@ export class QuizView {
       previewImg.alt = `Bandera actual`;
     }
 
-    // Actualizar clase activa en la cuadrícula sin forzar ningún scroll
+    // Actualizar clase activa en la cuadrícula sin scroll
     this.container.querySelectorAll('.matrix-flag-cell.active-target').forEach(c => {
       c.classList.remove('active-target');
     });
@@ -311,7 +337,6 @@ export class QuizView {
     const activeCell = this.container.querySelector(`#flag-cell-${state.activeCode}`);
     if (activeCell) {
       activeCell.classList.add('active-target');
-      // No llamamos a scrollIntoView para evitar que la pantalla salte o bloquee al usuario
     }
 
     // Actualizar banderas acertadas en la cuadrícula
@@ -336,6 +361,17 @@ export class QuizView {
 
     const timerVal = this.container.querySelector('#top-timer-display');
     if (timerVal) timerVal.textContent = quizEngine.formatTime(state.elapsedSeconds);
+
+    // Si el estado de juego ha cambiado (ej. de idle a running al empezar a escribir),
+    // actualizar inmediatamente los botones de acción sin que siga apareciendo "Start Quiz"
+    if (this.lastRenderedStatus !== state.status) {
+      this.lastRenderedStatus = state.status;
+      const actionsContainer = this.container.querySelector('#top-actions-container');
+      if (actionsContainer) {
+        actionsContainer.innerHTML = this.renderActionsHtml(state.status);
+        this.bindActionButtons();
+      }
+    }
   }
 
   private focusInput(): void {

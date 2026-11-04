@@ -74,27 +74,27 @@ export class LeaderboardView {
           </p>
         </div>
 
-        <!-- Selector de Modo de Juego en Leaderboard -->
+        <!-- Selector de Modo de Juego en Leaderboard (Sin Iconos) -->
         <div class="game-mode-selector-bar" style="margin-bottom: 24px; justify-content: center;">
           <span class="mode-bar-label">${t('lblGameMode')}:</span>
           <div class="mode-pills-wrap">
             <button class="mode-pill-btn ${this.currentMode === 'world' ? 'active' : ''}" data-lb-mode="world">
-              🌍 ${t('modeWorld')}
+              ${t('modeWorld')}
             </button>
             <button class="mode-pill-btn ${this.currentMode === 'europe' ? 'active' : ''}" data-lb-mode="europe">
-              🏰 ${t('modeEurope')}
+              ${t('modeEurope')}
             </button>
             <button class="mode-pill-btn ${this.currentMode === 'asia' ? 'active' : ''}" data-lb-mode="asia">
-              🏯 ${t('modeAsia')}
+              ${t('modeAsia')}
             </button>
             <button class="mode-pill-btn ${this.currentMode === 'africa' ? 'active' : ''}" data-lb-mode="africa">
-              🦁 ${t('modeAfrica')}
+              ${t('modeAfrica')}
             </button>
             <button class="mode-pill-btn ${this.currentMode === 'americas' ? 'active' : ''}" data-lb-mode="americas">
-              🌎 ${t('modeAmericas')}
+              ${t('modeAmericas')}
             </button>
             <button class="mode-pill-btn ${this.currentMode === 'oceania' ? 'active' : ''}" data-lb-mode="oceania">
-              🏝️ ${t('modeOceania')}
+              ${t('modeOceania')}
             </button>
           </div>
         </div>

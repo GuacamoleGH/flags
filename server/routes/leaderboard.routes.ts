@@ -26,15 +26,15 @@ leaderboardRouter.get('/', optionalAuth, (req: AuthenticatedRequest, res: Respon
     const rawRows = db.prepare(`
       SELECT
         lr.best_time_seconds,
-        lr.countries_count,
-        lr.game_mode,
+        COALESCE(lr.countries_count, 196) AS countries_count,
+        COALESCE(lr.game_mode, 'world') AS game_mode,
         lr.achieved_at,
         u.id AS user_id,
         u.username,
         u.avatar
       FROM leaderboard_records lr
       JOIN users u ON u.id = lr.user_id
-      WHERE lr.game_mode = ?
+      WHERE COALESCE(lr.game_mode, 'world') = ?
       ORDER BY lr.best_time_seconds ASC, lr.achieved_at ASC
       LIMIT 100
     `).all(mode);
@@ -52,34 +52,38 @@ leaderboardRouter.get('/', optionalAuth, (req: AuthenticatedRequest, res: Respon
 
     let currentUserRecord = null;
     if (req.user) {
-      const userRank = db.prepare(`
-        SELECT
-          lr.best_time_seconds,
-          lr.countries_count,
-          lr.game_mode,
-          lr.achieved_at,
-          (
-            SELECT COUNT(*) + 1
-            FROM leaderboard_records lr2
-            WHERE lr2.game_mode = ? AND (
-              lr2.best_time_seconds < lr.best_time_seconds
-              OR (lr2.best_time_seconds = lr.best_time_seconds AND lr2.achieved_at < lr.achieved_at)
-            )
-          ) AS rank
-        FROM leaderboard_records lr
-        WHERE lr.user_id = ? AND lr.game_mode = ?
-      `).get(mode, req.user.id, mode);
+      try {
+        const userRank = db.prepare(`
+          SELECT
+            lr.best_time_seconds,
+            COALESCE(lr.countries_count, 196) AS countries_count,
+            COALESCE(lr.game_mode, 'world') AS game_mode,
+            lr.achieved_at,
+            (
+              SELECT COUNT(*) + 1
+              FROM leaderboard_records lr2
+              WHERE COALESCE(lr2.game_mode, 'world') = ? AND (
+                lr2.best_time_seconds < lr.best_time_seconds
+                OR (lr2.best_time_seconds = lr.best_time_seconds AND lr2.achieved_at < lr.achieved_at)
+              )
+            ) AS rank
+          FROM leaderboard_records lr
+          WHERE lr.user_id = ? AND COALESCE(lr.game_mode, 'world') = ?
+        `).get(mode, req.user.id, mode);
 
-      if (userRank) {
-        currentUserRecord = {
-          rank: userRank.rank,
-          username: req.user.username,
-          avatar: req.user.avatar,
-          bestTimeSeconds: userRank.best_time_seconds,
-          countriesCount: userRank.countries_count,
-          gameMode: userRank.game_mode,
-          achievedAt: userRank.achieved_at
-        };
+        if (userRank) {
+          currentUserRecord = {
+            rank: userRank.rank,
+            username: req.user.username,
+            avatar: req.user.avatar,
+            bestTimeSeconds: userRank.best_time_seconds,
+            countriesCount: userRank.countries_count,
+            gameMode: userRank.game_mode,
+            achievedAt: userRank.achieved_at
+          };
+        }
+      } catch (errUser) {
+        console.error('[Leaderboard UserRank error]', errUser);
       }
     }
 
