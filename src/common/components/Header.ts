@@ -6,11 +6,11 @@
 // =============================================================================
 
 /**
- * @fileoverview Componente de cabecera con navegación SPA, selector de idioma y perfil.
+ * @fileoverview Componente de cabecera con navegación SPA, selector de idioma, tema claro/oscuro y perfil.
  * @spec REQ-01, REQ-06, REQ-07
  */
 
-import { t, getLanguage, setLanguage } from '../i18n';
+import { t, getLanguage, setLanguage, getTheme, toggleTheme } from '../i18n';
 import { apiService } from '../services/api.service';
 
 export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLElement {
@@ -19,11 +19,12 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
 
   const user = apiService.getCurrentUser();
   const currentLang = getLanguage();
+  const currentTheme = getTheme();
 
   header.innerHTML = `
     <div class="site-container header-content">
       <a href="#quiz" class="brand-link">
-        <div class="brand-logo-icon">🏳️</div>
+        <div class="brand-logo-icon">🚩</div>
         <span>${t('appTitle')}</span>
         <span class="brand-badge">196</span>
       </a>
@@ -36,6 +37,11 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
       </nav>
 
       <div class="header-actions">
+        <!-- Selector de Tema Claro / Oscuro -->
+        <button class="theme-toggle-btn" id="btn-theme-toggle" title="${currentTheme === 'dark' ? t('themeLight') : t('themeDark')}">
+          ${currentTheme === 'dark' ? '☀️' : '🌙'}
+        </button>
+
         <!-- Selector de Idioma -->
         <div class="lang-switcher">
           <button class="lang-btn ${currentLang === 'es' ? 'active' : ''}" data-lang="es">ES</button>
@@ -58,7 +64,12 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
     </div>
   `;
 
-  // Eventos de botones
+  // Evento toggle tema
+  header.querySelector('#btn-theme-toggle')?.addEventListener('click', () => {
+    toggleTheme();
+  });
+
+  // Eventos de idioma
   header.querySelectorAll('.lang-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const target = e.currentTarget as HTMLElement;

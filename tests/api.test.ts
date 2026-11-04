@@ -111,6 +111,8 @@ describe('Backend API & Security Integration', () => {
       body: JSON.stringify({
         timeSeconds: 320, // 5m 20s
         countriesGuessed: 196,
+        totalCountries: 196,
+        gameMode: 'world',
         completed: true,
         language: 'es'
       })

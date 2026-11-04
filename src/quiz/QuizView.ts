@@ -6,12 +6,13 @@
 // =============================================================================
 
 /**
- * @fileoverview Vista del Quiz con panel superior de respuesta activa y cuadrícula aleatoria.
+ * @fileoverview Vista del Quiz con panel centralizado, banderas de mayor tamaño,
+ * modo de juego por continentes y arranque automático al teclear.
  * @spec REQ-02, REQ-03, REQ-04, REQ-05
  */
 
 import { COUNTRIES_BY_CODE } from '../data/countries.data';
-import { quizEngine, type QuizState } from './QuizEngine';
+import { quizEngine, type QuizState, type QuizGameMode } from './QuizEngine';
 import { t, getLanguage } from '../common/i18n';
 import { apiService, type ScoreSubmissionResult } from '../common/services/api.service';
 import { openAuthModal } from '../common/components/AuthModal';
@@ -57,74 +58,101 @@ export class QuizView {
 
     this.container.innerHTML = `
       <div class="site-container">
-        <!-- Barra de Control y Respuesta Activa Superior (Fijada) -->
+        <!-- Selector de Modo de Juego (Mundo / Continentes) -->
+        <div class="game-mode-selector-bar">
+          <span class="mode-bar-label">${t('lblGameMode')}:</span>
+          <div class="mode-pills-wrap">
+            <button class="mode-pill-btn ${state.gameMode === 'world' ? 'active' : ''}" data-mode="world">
+              🌍 ${t('modeWorld')}
+            </button>
+            <button class="mode-pill-btn ${state.gameMode === 'europe' ? 'active' : ''}" data-mode="europe">
+              🏰 ${t('modeEurope')}
+            </button>
+            <button class="mode-pill-btn ${state.gameMode === 'asia' ? 'active' : ''}" data-mode="asia">
+              🏯 ${t('modeAsia')}
+            </button>
+            <button class="mode-pill-btn ${state.gameMode === 'africa' ? 'active' : ''}" data-mode="africa">
+              🦁 ${t('modeAfrica')}
+            </button>
+            <button class="mode-pill-btn ${state.gameMode === 'americas' ? 'active' : ''}" data-mode="americas">
+              🌎 ${t('modeAmericas')}
+            </button>
+            <button class="mode-pill-btn ${state.gameMode === 'oceania' ? 'active' : ''}" data-mode="oceania">
+              🏝️ ${t('modeOceania')}
+            </button>
+          </div>
+        </div>
+
+        <!-- Barra de Control Centralizada y Fija -->
         <div class="active-quiz-control-bar" id="active-quiz-bar">
-          <!-- Bandera Activa a Resolver -->
-          <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
-            <img
-              id="active-flag-img"
-              src="${activeCountry.flagUrl}"
-              alt="Bandera a responder"
-              class="active-flag-img"
-            />
-          </div>
-
-          <!-- Navegación Anterior -->
-          <button class="nav-flag-btn" id="btn-flag-prev" title="${t('btnPrev')}">
-            ${t('btnPrev')}
-          </button>
-
-          <!-- Campo Principal de Entrada -->
-          <div class="active-input-container">
-            <label class="active-input-label" for="active-country-input">
-              ${t('lblEnterCountry')}
-            </label>
-            <input
-              type="text"
-              id="active-country-input"
-              class="active-country-input"
-              placeholder="${t('placeholderAnswer')}"
-              autocomplete="off"
-              autofocus
-              spellcheck="false"
-            />
-          </div>
-
-          <!-- Navegación Siguiente -->
-          <button class="nav-flag-btn" id="btn-flag-next" title="${t('btnNext')}">
-            ${t('btnNext')}
-          </button>
-
-          <!-- Panel de Estadísticas y Temporizador -->
-          <div class="quiz-top-stats">
-            <div class="top-stat-item">
-              <span class="top-stat-label">${t('lblProgress')}</span>
-              <span class="top-stat-number" id="top-score-display">
-                ${state.guessedCodes.size}/196
-              </span>
+          <div class="control-bar-centered-content">
+            <!-- Vista Previa de la Bandera Activa (Más grande y sin fondo negro) -->
+            <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
+              <img
+                id="active-flag-img"
+                src="${activeCountry.flagUrl}"
+                alt="Bandera a responder"
+                class="active-flag-img"
+              />
             </div>
 
-            <div class="top-stat-item">
-              <span class="top-stat-label">${t('lblTime')}</span>
-              <span class="top-stat-timer" id="top-timer-display">
-                ${quizEngine.formatTime(state.elapsedSeconds)}
-              </span>
+            <!-- Botón Anterior (Grande) -->
+            <button class="nav-flag-btn large-nav-btn" id="btn-flag-prev" title="${t('btnPrev')}">
+              ${t('btnPrev')}
+            </button>
+
+            <!-- Campo Principal de Entrada -->
+            <div class="active-input-container">
+              <label class="active-input-label" for="active-country-input">
+                ${t('lblEnterCountry')}
+              </label>
+              <input
+                type="text"
+                id="active-country-input"
+                class="active-country-input"
+                placeholder="${t('placeholderAnswer')}"
+                autocomplete="off"
+                autofocus
+                spellcheck="false"
+              />
             </div>
 
-            <div class="top-actions-wrap">
-              ${state.status === 'running' ? `
-                <button class="btn-link-danger" id="btn-action-giveup">${t('btnGiveUp')}</button>
-                <button class="btn-link-subtle" id="btn-action-restart">${t('btnRestart')}</button>
-              ` : `
-                <button class="btn-primary" id="btn-action-start" style="padding: 6px 14px; font-size: 0.85rem;">
-                  ▶ ${t('btnStart')}
-                </button>
-              `}
+            <!-- Botón Siguiente (Grande) -->
+            <button class="nav-flag-btn large-nav-btn" id="btn-flag-next" title="${t('btnNext')}">
+              ${t('btnNext')}
+            </button>
+
+            <!-- Estadísticas y Temporizador -->
+            <div class="quiz-top-stats">
+              <div class="top-stat-item">
+                <span class="top-stat-label">${t('lblProgress')}</span>
+                <span class="top-stat-number" id="top-score-display">
+                  ${state.guessedCodes.size}/${state.totalInMode}
+                </span>
+              </div>
+
+              <div class="top-stat-item">
+                <span class="top-stat-label">${t('lblTime')}</span>
+                <span class="top-stat-timer" id="top-timer-display">
+                  ${quizEngine.formatTime(state.elapsedSeconds)}
+                </span>
+              </div>
+
+              <div class="top-actions-wrap">
+                ${state.status === 'running' ? `
+                  <button class="btn-link-danger" id="btn-action-giveup">${t('btnGiveUp')}</button>
+                  <button class="btn-link-subtle" id="btn-action-restart">${t('btnRestart')}</button>
+                ` : `
+                  <button class="btn-primary" id="btn-action-start" style="padding: 8px 16px; font-size: 0.9rem;">
+                    ▶ ${t('btnStart')}
+                  </button>
+                `}
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Cuadrícula de Banderas en Orden Aleatorio -->
+        <!-- Cuadrícula Matricial de Banderas en Orden Aleatorio -->
         <div class="flags-matrix-grid" id="flags-matrix-grid"></div>
       </div>
     `;
@@ -137,6 +165,18 @@ export class QuizView {
   private bindControls(): void {
     const input = this.container.querySelector('#active-country-input') as HTMLInputElement;
 
+    // Selector de modo de juego
+    this.container.querySelectorAll('.mode-pill-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const mode = target.getAttribute('data-mode') as QuizGameMode;
+        if (mode) {
+          quizEngine.setGameMode(mode);
+          this.render();
+        }
+      });
+    });
+
     const handleAnswerSubmission = () => {
       const val = input.value.trim();
       if (!val) return;
@@ -145,11 +185,14 @@ export class QuizView {
       if (isCorrect) {
         input.value = '';
         input.classList.add('flash-success');
-        setTimeout(() => input.classList.remove('flash-success'), 300);
+        setTimeout(() => input.classList.remove('flash-success'), 250);
       }
     };
 
     input?.addEventListener('keydown', (e) => {
+      // Inicia el cronómetro automáticamente con la primera pulsación
+      quizEngine.ensureRunningOnTyping();
+
       if (e.key === 'Enter') {
         e.preventDefault();
         handleAnswerSubmission();
@@ -163,6 +206,7 @@ export class QuizView {
     });
 
     input?.addEventListener('input', () => {
+      quizEngine.ensureRunningOnTyping();
       handleAnswerSubmission();
     });
 
@@ -184,6 +228,7 @@ export class QuizView {
     this.container.querySelector('#btn-action-restart')?.addEventListener('click', () => {
       quizEngine.restart();
       this.render();
+      this.focusInput();
     });
 
     this.container.querySelector('#btn-action-start')?.addEventListener('click', () => {
@@ -225,7 +270,7 @@ export class QuizView {
             <img
               class="matrix-flag-img"
               src="${c.flagUrl}"
-              alt="Bandera"
+              alt="Bandera de ${displayName}"
               loading="lazy"
             />
           </div>
@@ -236,7 +281,7 @@ export class QuizView {
       `;
     }).join('');
 
-    // Permitir hacer clic en cualquier bandera de la cuadrícula para seleccionarla
+    // Permitir hacer clic en cualquier bandera para seleccionarla
     grid.querySelectorAll('.matrix-flag-cell').forEach(cell => {
       cell.addEventListener('click', () => {
         const code = cell.getAttribute('data-code');
@@ -258,7 +303,7 @@ export class QuizView {
       previewImg.alt = `Bandera actual`;
     }
 
-    // Actualizar clase activa en la cuadrícula
+    // Actualizar clase activa en la cuadrícula sin forzar ningún scroll
     this.container.querySelectorAll('.matrix-flag-cell.active-target').forEach(c => {
       c.classList.remove('active-target');
     });
@@ -266,8 +311,7 @@ export class QuizView {
     const activeCell = this.container.querySelector(`#flag-cell-${state.activeCode}`);
     if (activeCell) {
       activeCell.classList.add('active-target');
-      // Scroll sutil si está fuera de pantalla
-      activeCell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // No llamamos a scrollIntoView para evitar que la pantalla salte o bloquee al usuario
     }
 
     // Actualizar banderas acertadas en la cuadrícula
@@ -288,7 +332,7 @@ export class QuizView {
 
   private updateHud(state: QuizState): void {
     const scoreVal = this.container.querySelector('#top-score-display');
-    if (scoreVal) scoreVal.textContent = `${state.guessedCodes.size}/196`;
+    if (scoreVal) scoreVal.textContent = `${state.guessedCodes.size}/${state.totalInMode}`;
 
     const timerVal = this.container.querySelector('#top-timer-display');
     if (timerVal) timerVal.textContent = quizEngine.formatTime(state.elapsedSeconds);
@@ -308,12 +352,14 @@ export class QuizView {
       this.currentScoreResult = await apiService.submitScore({
         timeSeconds: state.elapsedSeconds,
         countriesGuessed: state.guessedCodes.size,
+        totalCountries: state.totalInMode,
+        gameMode: state.gameMode,
         completed: state.status === 'completed',
         language: getLanguage()
       });
 
       if (this.currentScoreResult.guest && state.status === 'completed') {
-        quizEngine.setGuestBestTime(state.elapsedSeconds);
+        quizEngine.setGuestBestTime(state.gameMode, state.elapsedSeconds);
       }
     } catch (err) {
       console.error('[Score Submission Error]', err);
@@ -327,8 +373,8 @@ export class QuizView {
     if (existing) existing.remove();
 
     const isVictory = state.status === 'completed';
-    const accuracy = Math.round((state.guessedCodes.size / 196) * 100);
-    const guestPB = quizEngine.getGuestBestTime();
+    const accuracy = Math.round((state.guessedCodes.size / state.totalInMode) * 100);
+    const guestPB = quizEngine.getGuestBestTime(state.gameMode);
     const isPB = this.currentScoreResult?.isPersonalBest || (guestPB && guestPB === state.elapsedSeconds);
 
     const overlay = document.createElement('div');
@@ -351,7 +397,7 @@ export class QuizView {
             <div class="modal-stat-label">${t('modalTotalTime')}</div>
           </div>
           <div class="modal-stat-box">
-            <div class="modal-stat-num">${state.guessedCodes.size} / 196</div>
+            <div class="modal-stat-num">${state.guessedCodes.size} / ${state.totalInMode}</div>
             <div class="modal-stat-label">${t('modalGuessed')}</div>
           </div>
           <div class="modal-stat-box">
@@ -363,7 +409,7 @@ export class QuizView {
         ${isPB ? `
           <div class="modal-banner-pb">
             🎉 ${t('modalPersonalBest')}
-            ${this.currentScoreResult?.rank ? `(Puesto #${this.currentScoreResult.rank} Global)` : ''}
+            ${this.currentScoreResult?.rank ? `(Puesto #${this.currentScoreResult.rank} en ${state.gameMode})` : ''}
           </div>
         ` : ''}
 

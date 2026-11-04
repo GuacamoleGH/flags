@@ -63,6 +63,37 @@ export function getDb(): any {
     dbInstance.exec(schemaSql);
   }
 
+  // Migraciones automáticas no destructivas para homelab
+  try {
+    const tableInfo = dbInstance.prepare("PRAGMA table_info(match_history)").all();
+    const hasMode = tableInfo.some((col: any) => col.name === 'game_mode');
+    if (!hasMode) {
+      dbInstance.exec("ALTER TABLE match_history ADD COLUMN game_mode TEXT NOT NULL DEFAULT 'world';");
+    }
+  } catch {}
+
+  try {
+    const lbInfo = dbInstance.prepare("PRAGMA table_info(leaderboard_records)").all();
+    const hasLbMode = lbInfo.some((col: any) => col.name === 'game_mode');
+    if (!hasLbMode) {
+      dbInstance.exec(`
+        CREATE TABLE IF NOT EXISTS leaderboard_records_new (
+          user_id INTEGER NOT NULL,
+          game_mode TEXT NOT NULL DEFAULT 'world',
+          best_time_seconds INTEGER NOT NULL,
+          countries_count INTEGER NOT NULL,
+          achieved_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (user_id, game_mode),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+        INSERT OR IGNORE INTO leaderboard_records_new (user_id, game_mode, best_time_seconds, countries_count, achieved_at)
+        SELECT user_id, 'world', best_time_seconds, countries_count, achieved_at FROM leaderboard_records;
+        DROP TABLE leaderboard_records;
+        ALTER TABLE leaderboard_records_new RENAME TO leaderboard_records;
+      `);
+    }
+  } catch {}
+
   return dbInstance;
 }
 

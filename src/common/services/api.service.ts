@@ -19,6 +19,8 @@ export interface UserSession {
 export interface ScoreSubmissionPayload {
   timeSeconds: number;
   countriesGuessed: number;
+  totalCountries?: number;
+  gameMode?: string;
   completed: boolean;
   language: 'es' | 'en';
 }
@@ -51,8 +53,11 @@ export interface LeaderboardResponse {
     username: string;
     avatar: string;
     bestTimeSeconds: number;
+    countriesCount?: number;
+    gameMode?: string;
     achievedAt: string;
   } | null;
+  gameMode?: string;
   totalEntries: number;
 }
 
@@ -223,8 +228,8 @@ class ApiService {
     return data;
   }
 
-  public async getLeaderboard(): Promise<LeaderboardResponse> {
-    const res = await fetch('/api/leaderboard', { headers: this.getHeaders() });
+  public async getLeaderboard(mode = 'world'): Promise<LeaderboardResponse> {
+    const res = await fetch(`/api/leaderboard?mode=${encodeURIComponent(mode)}`, { headers: this.getHeaders() });
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.error || 'Error al obtener la tabla de clasificación.');

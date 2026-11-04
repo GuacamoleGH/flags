@@ -17,25 +17,27 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
--- Tabla de Récords Oficiales (Global Leaderboard)
--- Solo se registran partidas que completaron las 196 banderas
+-- Tabla de Récords Oficiales (Global Leaderboard por Modo de Juego)
 CREATE TABLE IF NOT EXISTS leaderboard_records (
-  user_id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  game_mode TEXT NOT NULL DEFAULT 'world',
   best_time_seconds INTEGER NOT NULL,
-  countries_count INTEGER NOT NULL DEFAULT 196,
+  countries_count INTEGER NOT NULL,
   achieved_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, game_mode),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_leaderboard_time ON leaderboard_records(best_time_seconds ASC, achieved_at ASC);
+CREATE INDEX IF NOT EXISTS idx_leaderboard_mode_time ON leaderboard_records(game_mode, best_time_seconds ASC, achieved_at ASC);
 
--- Tabla de Historial de Partidas (Completadas y Abandonadas)
+-- Tabla de Historial de Partidas
 CREATE TABLE IF NOT EXISTS match_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
+  game_mode TEXT NOT NULL DEFAULT 'world',
   time_seconds INTEGER NOT NULL,
   countries_guessed INTEGER NOT NULL,
-  total_countries INTEGER NOT NULL DEFAULT 196,
+  total_countries INTEGER NOT NULL,
   completed INTEGER NOT NULL DEFAULT 0,
   is_personal_best INTEGER NOT NULL DEFAULT 0,
   language TEXT NOT NULL DEFAULT 'es',
@@ -43,10 +45,10 @@ CREATE TABLE IF NOT EXISTS match_history (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_match_history_user ON match_history(user_id, played_at DESC);
+CREATE INDEX IF NOT EXISTS idx_match_history_user_mode ON match_history(user_id, game_mode, played_at DESC);
 CREATE INDEX IF NOT EXISTS idx_match_history_completed ON match_history(completed, time_seconds ASC);
 
--- Tabla de Sesiones Activas (Tokens JWT revocables)
+-- Tabla de Sesiones Activas
 CREATE TABLE IF NOT EXISTS active_sessions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,

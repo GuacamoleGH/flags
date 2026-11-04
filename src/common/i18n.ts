@@ -6,7 +6,7 @@
 // =============================================================================
 
 /**
- * @fileoverview Sistema reactivo y tipado de internacionalización (Español / English).
+ * @fileoverview Sistema reactivo y tipado de internacionalización y temas.
  * @spec REQ-06
  */
 
@@ -15,7 +15,7 @@ import type { SupportedLanguage } from './types/country';
 export const TRANSLATIONS = {
   es: {
     appTitle: 'GuacamoleGH Flags',
-    appSubtitle: 'Quiz de banderas de los 196 países oficiales del mundo',
+    appSubtitle: 'Quiz interactivo de banderas del mundo',
     navQuiz: 'Quiz',
     navLeaderboard: 'Rankings',
     navHistory: 'Historial',
@@ -24,6 +24,15 @@ export const TRANSLATIONS = {
     navRegister: 'Registrarse',
     navLogout: 'Cerrar sesión',
     guestUser: 'Invitado',
+
+    // Modos de juego
+    lblGameMode: 'Modo de juego',
+    modeWorld: 'Mundo (196)',
+    modeEurope: 'Europa',
+    modeAsia: 'Asia',
+    modeAfrica: 'África',
+    modeAmericas: 'América',
+    modeOceania: 'Oceanía',
 
     // HUD y controles
     btnStart: 'Iniciar Quiz',
@@ -38,10 +47,14 @@ export const TRANSLATIONS = {
     lblProgress: 'Puntuación',
     lblPending: 'Pendientes',
     lblCompleted: 'Completado',
-    quizInstruction: 'Identifica las 196 banderas escribiendo el nombre de cada país. Pulsa Enter o escribe el nombre completo.',
+    quizInstruction: 'Identifica las banderas. Empieza a escribir para iniciar el tiempo automáticamente.',
     placeholderAnswer: 'Escribe el país...',
-    placeholderSearch: 'Filtrar por continente o nombre...',
-    compoundHint: 'Reconocido por abreviación compuesta',
+    placeholderSearch: 'Buscar bandera...',
+    compoundHint: 'Reconocido por abreviación',
+
+    // Temas
+    themeLight: 'Modo Claro',
+    themeDark: 'Modo Oscuro',
 
     // Modales de resultados
     modalVictoryTitle: '¡Felicidades! ¡Quiz Completado!',
@@ -55,18 +68,18 @@ export const TRANSLATIONS = {
 
     // Rankings
     leaderboardTitle: 'Clasificación Global',
-    leaderboardSubtitle: 'Los mejores tiempos completando los 196 países oficiales',
+    leaderboardSubtitle: 'Los mejores tiempos completando banderas en cada modo',
     colRank: 'Posición',
     colPlayer: 'Jugador',
     colTime: 'Tiempo',
     colDate: 'Fecha',
-    yourRankBanner: 'Tu posición actual en el ranking:',
-    noRecords: 'Aún no hay récords registrados. ¡Completa las 196 banderas para liderar el ranking!',
+    yourRankBanner: 'Tu mejor marca en este modo:',
+    noRecords: 'Aún no hay récords registrados en este modo. ¡Sé el primero!',
 
     // Perfil
     profileTitle: 'Perfil de Jugador',
     lblMemberSince: 'Miembro desde',
-    lblBestTime: 'Mejor tiempo (196)',
+    lblBestTime: 'Mejor tiempo',
     lblCompletedCount: 'Partidas completadas',
     lblPlayedCount: 'Partidas jugadas',
     lblAvgGuessed: 'Promedio de aciertos',
@@ -98,19 +111,11 @@ export const TRANSLATIONS = {
     alreadyAccount: '¿Ya tienes cuenta? Inicia sesión',
     needAccount: '¿No tienes cuenta? Regístrate gratis',
     authSuccessLogin: '¡Bienvenido de nuevo!',
-    authSuccessRegister: '¡Cuenta creada con éxito!',
-
-    // Continentes para filtros
-    continentAll: 'Todos los continentes',
-    continentEurope: 'Europa',
-    continentAsia: 'Asia',
-    continentAfrica: 'África',
-    continentAmericas: 'América',
-    continentOceania: 'Oceanía'
+    authSuccessRegister: '¡Cuenta creada con éxito!'
   },
   en: {
     appTitle: 'GuacamoleGH Flags',
-    appSubtitle: 'Country Flag Quiz featuring all 196 official world countries',
+    appSubtitle: 'Interactive world flag quiz',
     navQuiz: 'Quiz',
     navLeaderboard: 'Leaderboard',
     navHistory: 'History',
@@ -119,6 +124,15 @@ export const TRANSLATIONS = {
     navRegister: 'Register',
     navLogout: 'Log out',
     guestUser: 'Guest',
+
+    // Game modes
+    lblGameMode: 'Game Mode',
+    modeWorld: 'World (196)',
+    modeEurope: 'Europe',
+    modeAsia: 'Asia',
+    modeAfrica: 'Africa',
+    modeAmericas: 'Americas',
+    modeOceania: 'Oceania',
 
     // HUD and controls
     btnStart: 'Start Quiz',
@@ -133,10 +147,14 @@ export const TRANSLATIONS = {
     lblProgress: 'Score',
     lblPending: 'Pending',
     lblCompleted: 'Completed',
-    quizInstruction: 'Identify all 196 flags by typing each country name. Press Enter or type the complete name.',
+    quizInstruction: 'Identify flags. Start typing to start timer automatically.',
     placeholderAnswer: 'Type country...',
-    placeholderSearch: 'Filter by continent or name...',
-    compoundHint: 'Recognized by compound shortcut',
+    placeholderSearch: 'Search flag...',
+    compoundHint: 'Recognized by shortcut',
+
+    // Themes
+    themeLight: 'Light Mode',
+    themeDark: 'Dark Mode',
 
     // Results Modals
     modalVictoryTitle: 'Congratulations! Quiz Completed!',
@@ -150,18 +168,18 @@ export const TRANSLATIONS = {
 
     // Leaderboard
     leaderboardTitle: 'Global Leaderboard',
-    leaderboardSubtitle: 'Fastest times identifying all 196 official countries',
+    leaderboardSubtitle: 'Fastest times identifying flags by game mode',
     colRank: 'Rank',
     colPlayer: 'Player',
     colTime: 'Time',
     colDate: 'Date',
-    yourRankBanner: 'Your current position on the leaderboard:',
-    noRecords: 'No records yet. Complete all 196 flags to take the lead!',
+    yourRankBanner: 'Your personal best in this mode:',
+    noRecords: 'No records in this mode yet. Be the first!',
 
     // Profile
     profileTitle: 'Player Profile',
     lblMemberSince: 'Member since',
-    lblBestTime: 'Best Time (196)',
+    lblBestTime: 'Best Time',
     lblCompletedCount: 'Games Completed',
     lblPlayedCount: 'Games Played',
     lblAvgGuessed: 'Average Guessed',
@@ -193,15 +211,7 @@ export const TRANSLATIONS = {
     alreadyAccount: 'Already have an account? Log in',
     needAccount: "Don't have an account? Sign up",
     authSuccessLogin: 'Welcome back!',
-    authSuccessRegister: 'Account created successfully!',
-
-    // Continents
-    continentAll: 'All Continents',
-    continentEurope: 'Europe',
-    continentAsia: 'Asia',
-    continentAfrica: 'Africa',
-    continentAmericas: 'Americas',
-    continentOceania: 'Oceania'
+    authSuccessRegister: 'Account created successfully!'
   }
 } as const;
 
@@ -211,7 +221,7 @@ let currentLang: SupportedLanguage = (
   (typeof localStorage !== 'undefined' && localStorage.getItem('guacamolegh_flags_lang') as SupportedLanguage) || 'es'
 );
 
-const listeners = new Set<(lang: SupportedLanguage) => void>();
+const langListeners = new Set<(lang: SupportedLanguage) => void>();
 
 export function getLanguage(): SupportedLanguage {
   return currentLang;
@@ -223,14 +233,54 @@ export function setLanguage(lang: SupportedLanguage): void {
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('guacamolegh_flags_lang', lang);
   }
-  listeners.forEach(fn => fn(lang));
+  langListeners.forEach(fn => fn(lang));
 }
 
 export function onLanguageChange(fn: (lang: SupportedLanguage) => void): () => void {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
+  langListeners.add(fn);
+  return () => langListeners.delete(fn);
 }
 
 export function t(key: TranslationKey): string {
   return TRANSLATIONS[currentLang][key] || TRANSLATIONS.es[key] || key;
+}
+
+// =============================================================================
+// Soporte de Tema Claro / Oscuro (Light Mode / Dark Mode)
+// =============================================================================
+export type ThemeMode = 'dark' | 'light';
+
+let currentTheme: ThemeMode = (
+  (typeof localStorage !== 'undefined' && localStorage.getItem('guacamolegh_flags_theme') as ThemeMode) || 'dark'
+);
+
+const themeListeners = new Set<(theme: ThemeMode) => void>();
+
+export function getTheme(): ThemeMode {
+  return currentTheme;
+}
+
+export function setTheme(theme: ThemeMode): void {
+  currentTheme = theme;
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('guacamolegh_flags_theme', theme);
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+  themeListeners.forEach(fn => fn(theme));
+}
+
+export function toggleTheme(): void {
+  setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
+
+export function onThemeChange(fn: (theme: ThemeMode) => void): () => void {
+  themeListeners.add(fn);
+  return () => themeListeners.delete(fn);
+}
+
+// Aplicar tema inicial al cargar el script
+if (typeof document !== 'undefined') {
+  document.documentElement.setAttribute('data-theme', currentTheme);
 }

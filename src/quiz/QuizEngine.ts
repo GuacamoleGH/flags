@@ -6,7 +6,7 @@
 // =============================================================================
 
 /**
- * @fileoverview Motor de estado, temporizador, orden aleatorio y navegación de bandera activa.
+ * @fileoverview Motor de estado, temporizador, modos de juego (Mundo o Continentes) y navegación.
  * @spec REQ-02, REQ-03, REQ-04, REQ-05
  */
 
@@ -16,15 +16,18 @@ import { validateCountryAnswer } from './validation';
 import { getLanguage } from '../common/i18n';
 
 export type QuizStatus = 'idle' | 'running' | 'completed' | 'abandoned';
+export type QuizGameMode = 'world' | 'europe' | 'asia' | 'africa' | 'americas' | 'oceania';
 
 export interface QuizState {
   status: QuizStatus;
+  gameMode: QuizGameMode;
   elapsedSeconds: number;
   guessedCodes: Set<string>;
   guessedDetails: Map<string, { matchedName: string; isShortcut: boolean }>;
   revealedRemaining: boolean;
   shuffledCodes: string[];
   activeCode: string;
+  totalInMode: number;
 }
 
 export type QuizStateListener = (state: QuizState) => void;
@@ -40,8 +43,23 @@ function shuffleArray<T>(array: readonly T[]): T[] {
   return arr;
 }
 
+function getCountriesForMode(mode: QuizGameMode): readonly Country[] {
+  if (mode === 'world') return COUNTRIES;
+
+  return COUNTRIES.filter(c => {
+    const cont = c.continentEs;
+    if (mode === 'europe') return cont.includes('Europa') || c.code === 'cy' || c.code === 'tr' || c.code === 'ru';
+    if (mode === 'asia') return cont.includes('Asia');
+    if (mode === 'africa') return cont.includes('África');
+    if (mode === 'americas') return cont.includes('América');
+    if (mode === 'oceania') return cont.includes('Oceanía');
+    return true;
+  });
+}
+
 class QuizEngine {
   private status: QuizStatus = 'idle';
+  private gameMode: QuizGameMode = 'world';
   private elapsedSeconds = 0;
   private timerInterval: any = null;
   private guessedCodes = new Set<string>();
@@ -56,7 +74,8 @@ class QuizEngine {
   }
 
   private initRandomOrder(): void {
-    const allCodes = COUNTRIES.map(c => c.code);
+    const countries = getCountriesForMode(this.gameMode);
+    const allCodes = countries.map(c => c.code);
     this.shuffledCodes = shuffleArray(allCodes);
     this.activeCode = this.shuffledCodes[0] || 'es';
   }
@@ -64,17 +83,25 @@ class QuizEngine {
   public getSnapshot(): QuizState {
     return {
       status: this.status,
+      gameMode: this.gameMode,
       elapsedSeconds: this.elapsedSeconds,
       guessedCodes: new Set(this.guessedCodes),
       guessedDetails: new Map(this.guessedDetails),
       revealedRemaining: this.revealedRemaining,
       shuffledCodes: [...this.shuffledCodes],
-      activeCode: this.activeCode
+      activeCode: this.activeCode,
+      totalInMode: this.shuffledCodes.length
     };
   }
 
   public getActiveCountry(): Country {
     return COUNTRIES_BY_CODE.get(this.activeCode) || COUNTRIES[0]!;
+  }
+
+  public setGameMode(mode: QuizGameMode): void {
+    if (this.gameMode === mode) return;
+    this.gameMode = mode;
+    this.restart();
   }
 
   public subscribe(listener: QuizStateListener): () => void {
@@ -107,6 +134,18 @@ class QuizEngine {
     this.notify();
   }
 
+  public ensureRunningOnTyping(): void {
+    if (this.status === 'idle') {
+      this.status = 'running';
+      this.stopTimer();
+      this.timerInterval = setInterval(() => {
+        this.elapsedSeconds += 1;
+        this.notify();
+      }, 1000);
+      this.notify();
+    }
+  }
+
   private stopTimer(): void {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
@@ -124,8 +163,7 @@ class QuizEngine {
   public nextFlag(): void {
     if (this.shuffledCodes.length === 0) return;
     const currentIndex = this.shuffledCodes.indexOf(this.activeCode);
-    
-    // Buscar la siguiente bandera pendiente empezando desde currentIndex + 1
+
     for (let offset = 1; offset < this.shuffledCodes.length; offset++) {
       const idx = (currentIndex + offset) % this.shuffledCodes.length;
       const code = this.shuffledCodes[idx]!;
@@ -136,7 +174,6 @@ class QuizEngine {
       }
     }
 
-    // Si todas están acertadas o no quedan pendientes en bucle, avanzar cíclicamente
     const nextIdx = (currentIndex + 1) % this.shuffledCodes.length;
     this.activeCode = this.shuffledCodes[nextIdx] || this.activeCode;
     this.notify();
@@ -146,7 +183,6 @@ class QuizEngine {
     if (this.shuffledCodes.length === 0) return;
     const currentIndex = this.shuffledCodes.indexOf(this.activeCode);
 
-    // Buscar la bandera pendiente anterior
     for (let offset = 1; offset < this.shuffledCodes.length; offset++) {
       let idx = (currentIndex - offset) % this.shuffledCodes.length;
       if (idx < 0) idx += this.shuffledCodes.length;
@@ -164,17 +200,8 @@ class QuizEngine {
     this.notify();
   }
 
-  /**
-   * Intenta validar la respuesta para la bandera activa actual.
-   * Si es correcta:
-   * - Marca la bandera como acertada.
-   * - Salta automáticamente a la siguiente bandera pendiente.
-   * - Devuelve true.
-   */
   public submitActiveAnswer(rawInput: string): boolean {
-    if (this.status !== 'running') {
-      this.start();
-    }
+    this.ensureRunningOnTyping();
 
     const currentCountry = this.getActiveCountry();
     if (this.guessedCodes.has(currentCountry.code)) {
@@ -192,15 +219,13 @@ class QuizEngine {
         isShortcut: Boolean(result.isCompoundShortcut)
       });
 
-      // Si ha completado las 196 banderas
-      if (this.guessedCodes.size === COUNTRIES.length) {
+      if (this.guessedCodes.size === this.shuffledCodes.length) {
         this.status = 'completed';
         this.stopTimer();
         this.notify();
         return true;
       }
 
-      // Avanzar automáticamente a la siguiente bandera no acertada
       this.nextFlag();
       return true;
     }
@@ -227,17 +252,17 @@ class QuizEngine {
     this.notify();
   }
 
-  public getGuestBestTime(): number | null {
+  public getGuestBestTime(mode: QuizGameMode): number | null {
     if (typeof localStorage === 'undefined') return null;
-    const val = localStorage.getItem('guacamolegh_flags_guest_best_time');
+    const val = localStorage.getItem(`guacamolegh_flags_guest_best_time_${mode}`);
     return val ? parseInt(val, 10) : null;
   }
 
-  public setGuestBestTime(seconds: number): void {
+  public setGuestBestTime(mode: QuizGameMode, seconds: number): void {
     if (typeof localStorage === 'undefined') return;
-    const current = this.getGuestBestTime();
+    const current = this.getGuestBestTime(mode);
     if (!current || seconds < current) {
-      localStorage.setItem('guacamolegh_flags_guest_best_time', seconds.toString());
+      localStorage.setItem(`guacamolegh_flags_guest_best_time_${mode}`, seconds.toString());
     }
   }
 

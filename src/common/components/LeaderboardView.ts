@@ -6,7 +6,7 @@
 // =============================================================================
 
 /**
- * @fileoverview Vista SPA de Rankings Globales (Top 100 de menores tiempos).
+ * @fileoverview Vista SPA de Rankings Globales por modo de juego (Mundo y Continentes).
  * @spec REQ-08
  */
 
@@ -17,6 +17,7 @@ import { quizEngine } from '../../quiz/QuizEngine';
 
 export class LeaderboardView {
   private container: HTMLElement;
+  private currentMode = 'world';
 
   constructor() {
     this.container = document.createElement('div');
@@ -25,10 +26,20 @@ export class LeaderboardView {
 
   public async mount(target: HTMLElement): Promise<void> {
     target.appendChild(this.container);
+    await this.fetchAndRender();
+  }
+
+  public unmount(): void {
+    this.container.remove();
+  }
+
+  private async fetchAndRender(): Promise<void> {
     this.container.innerHTML = `
-      <div class="site-container">
-        <div style="text-align: center; padding: 40px 0;">
-          <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">${t('leaderboardTitle')}</h1>
+      <div class="site-container" style="max-width: 1000px; margin: 0 auto; padding-bottom: 60px;">
+        <div style="text-align: center; padding: 30px 0 20px 0;">
+          <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;">
+            🏆 ${t('leaderboardTitle')}
+          </h1>
           <p style="color: var(--color-text-secondary);">${t('leaderboardSubtitle')}</p>
         </div>
         <div style="text-align: center; color: var(--color-text-muted);">Cargando clasificación...</div>
@@ -36,7 +47,7 @@ export class LeaderboardView {
     `;
 
     try {
-      const data = await apiService.getLeaderboard();
+      const data = await apiService.getLeaderboard(this.currentMode);
       this.render(data);
     } catch (err: any) {
       this.container.innerHTML = `
@@ -49,22 +60,43 @@ export class LeaderboardView {
     }
   }
 
-  public unmount(): void {
-    this.container.remove();
-  }
-
   private render(data: LeaderboardResponse): void {
     const { leaderboard, currentUserRecord } = data;
 
     this.container.innerHTML = `
       <div class="site-container" style="max-width: 1000px; margin: 0 auto; padding-bottom: 60px;">
-        <div style="text-align: center; padding: 30px 0 24px 0;">
+        <div style="text-align: center; padding: 30px 0 20px 0;">
           <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em;">
             🏆 ${t('leaderboardTitle')}
           </h1>
           <p style="color: var(--color-text-secondary); font-size: 1rem;">
             ${t('leaderboardSubtitle')}
           </p>
+        </div>
+
+        <!-- Selector de Modo de Juego en Leaderboard -->
+        <div class="game-mode-selector-bar" style="margin-bottom: 24px; justify-content: center;">
+          <span class="mode-bar-label">${t('lblGameMode')}:</span>
+          <div class="mode-pills-wrap">
+            <button class="mode-pill-btn ${this.currentMode === 'world' ? 'active' : ''}" data-lb-mode="world">
+              🌍 ${t('modeWorld')}
+            </button>
+            <button class="mode-pill-btn ${this.currentMode === 'europe' ? 'active' : ''}" data-lb-mode="europe">
+              🏰 ${t('modeEurope')}
+            </button>
+            <button class="mode-pill-btn ${this.currentMode === 'asia' ? 'active' : ''}" data-lb-mode="asia">
+              🏯 ${t('modeAsia')}
+            </button>
+            <button class="mode-pill-btn ${this.currentMode === 'africa' ? 'active' : ''}" data-lb-mode="africa">
+              🦁 ${t('modeAfrica')}
+            </button>
+            <button class="mode-pill-btn ${this.currentMode === 'americas' ? 'active' : ''}" data-lb-mode="americas">
+              🌎 ${t('modeAmericas')}
+            </button>
+            <button class="mode-pill-btn ${this.currentMode === 'oceania' ? 'active' : ''}" data-lb-mode="oceania">
+              🏝️ ${t('modeOceania')}
+            </button>
+          </div>
         </div>
 
         ${currentUserRecord ? `
@@ -137,5 +169,14 @@ export class LeaderboardView {
         </div>
       </div>
     `;
+
+    // Eventos de cambio de modo en el Leaderboard
+    this.container.querySelectorAll('[data-lb-mode]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        this.currentMode = target.getAttribute('data-lb-mode') || 'world';
+        this.fetchAndRender();
+      });
+    });
   }
 }
