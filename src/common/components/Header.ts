@@ -7,7 +7,7 @@
 
 /**
  * @fileoverview Componente de cabecera con navegación SPA, selector de idioma,
- * selector de tema con icono SVG (sol/luna) y bloqueo de idioma durante la partida.
+ * selector de tema con icono SVG exacto (luna en modo claro, sol en modo oscuro).
  * @spec REQ-01, REQ-06, REQ-07
  */
 
@@ -60,14 +60,14 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
       </nav>
 
       <div class="header-actions">
-        <!-- Selector de Tema Claro / Oscuro con Icono SVG exacto -->
+        <!-- Selector de Tema (En modo claro sale una Luna, en modo oscuro sale un Sol) -->
         <button
           class="theme-toggle-btn"
           id="btn-theme-toggle"
-          title="${currentTheme === 'dark' ? t('themeLight') : t('themeDark')}"
+          title="${currentTheme === 'light' ? t('themeDark') : t('themeLight')}"
           aria-label="Cambiar tema"
         >
-          ${currentTheme === 'dark' ? SUN_SVG : MOON_SVG}
+          ${currentTheme === 'light' ? MOON_SVG : SUN_SVG}
         </button>
 
         <!-- Selector de Idioma (Bloqueado durante la partida) -->
@@ -104,12 +104,14 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
     </div>
   `;
 
-  // Toggle tema
-  header.querySelector('#btn-theme-toggle')?.addEventListener('click', () => {
+  const btnToggle = header.querySelector('#btn-theme-toggle') as HTMLButtonElement;
+  btnToggle?.addEventListener('click', () => {
     toggleTheme();
+    const newTheme = getTheme();
+    btnToggle.innerHTML = newTheme === 'light' ? MOON_SVG : SUN_SVG;
+    btnToggle.setAttribute('title', newTheme === 'light' ? t('themeDark') : t('themeLight'));
   });
 
-  // Selector de idioma (solo permitido si NO está corriendo la partida)
   if (!isRunning) {
     header.querySelectorAll('.lang-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {

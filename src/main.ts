@@ -19,6 +19,7 @@ import { HistoryView } from './common/components/HistoryView';
 import { openAuthModal } from './common/components/AuthModal';
 import { onLanguageChange } from './common/i18n';
 import { apiService } from './common/services/api.service';
+import { quizEngine } from './quiz/QuizEngine';
 
 class AppRouter {
   private appElement: HTMLElement;
@@ -67,6 +68,16 @@ class AppRouter {
     apiService.onUserChange(() => {
       this.updateHeader();
       this.handleRoute(true);
+    });
+
+    // Bloqueo dinámico del selector de idioma al empezar partida
+    let lastRunningState = false;
+    quizEngine.subscribe((state) => {
+      const isRunning = state.status === 'running';
+      if (isRunning !== lastRunningState) {
+        lastRunningState = isRunning;
+        this.updateHeader();
+      }
     });
 
     this.updateHeader();
