@@ -108,8 +108,25 @@ export function openAuthModal(initialMode: 'login' | 'register' = 'login', onSuc
       </div>
     `;
 
+    const closeAuth = () => {
+      window.removeEventListener('keydown', handleAuthEsc);
+      overlay.remove();
+    };
+
+    const handleAuthEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeAuth();
+      }
+    };
+    window.addEventListener('keydown', handleAuthEsc);
+
     // Eventos
-    overlay.querySelector('#btn-close-modal')?.addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#btn-close-modal')?.addEventListener('click', closeAuth);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeAuth();
+      }
+    });
 
     overlay.querySelector('#btn-toggle-auth-mode')?.addEventListener('click', (e) => {
       e.preventDefault();

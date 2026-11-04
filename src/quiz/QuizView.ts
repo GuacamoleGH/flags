@@ -20,8 +20,11 @@ import { openAuthModal } from '../common/components/AuthModal';
 export class QuizView {
   private container: HTMLElement;
   private unsubscribeEngine?: () => void;
+  private globalKeyHandler?: (e: KeyboardEvent) => void;
   private currentScoreResult: ScoreSubmissionResult | null = null;
   private resultModalOpen = false;
+  private resultModalDismissed = false;
+  private scoreSubmittedForRun = false;
   private lastRenderedStatus: string = '';
 
   constructor() {
@@ -32,6 +35,46 @@ export class QuizView {
   public mount(target: HTMLElement): void {
     target.appendChild(this.container);
     this.render();
+
+    // Atajos de teclado globales (Tabulador para siguiente bandera, Esc para cerrar modales)
+    this.globalKeyHandler = (e: KeyboardEvent) => {
+      // 1. Manejo de tecla Escape para cerrar modales
+      if (e.key === 'Escape') {
+        const resultsOverlay = document.getElementById('results-modal-overlay');
+        if (resultsOverlay) {
+          e.preventDefault();
+          this.closeResultsModal();
+          return;
+        }
+
+        const pauseOverlay = document.getElementById('pause-modal-overlay');
+        if (pauseOverlay) {
+          e.preventDefault();
+          quizEngine.resume();
+          this.focusInput();
+          return;
+        }
+      }
+
+      // 2. Manejo de tecla Tabulador para cambiar de bandera
+      const hasModal = !!(
+        document.getElementById('results-modal-overlay') ||
+        document.getElementById('pause-modal-overlay') ||
+        document.getElementById('auth-modal-overlay')
+      );
+
+      if (e.key === 'Tab' && !hasModal) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          quizEngine.prevFlag();
+        } else {
+          quizEngine.nextFlag();
+        }
+        this.focusInput();
+      }
+    };
+
+    window.addEventListener('keydown', this.globalKeyHandler);
 
     this.unsubscribeEngine = quizEngine.subscribe((state) => {
       this.updateHud(state);
@@ -44,7 +87,8 @@ export class QuizView {
       }
 
       if (state.status === 'completed' || state.status === 'abandoned') {
-        if (!this.resultModalOpen) {
+        // Solo abrir el modal si no está abierto Y el usuario no lo ha cerrado previamente en esta ronda
+        if (!this.resultModalOpen && !this.resultModalDismissed) {
           this.handleGameFinished(state);
         }
       }
@@ -53,6 +97,10 @@ export class QuizView {
 
   public unmount(): void {
     this.hidePauseModal();
+    if (this.globalKeyHandler) {
+      window.removeEventListener('keydown', this.globalKeyHandler);
+      this.globalKeyHandler = undefined;
+    }
     if (this.unsubscribeEngine) {
       this.unsubscribeEngine();
       this.unsubscribeEngine = undefined;
@@ -232,6 +280,7 @@ export class QuizView {
         const target = e.currentTarget as HTMLElement;
         const mode = target.getAttribute('data-mode') as QuizGameMode;
         if (mode) {
+          this.resetResultModalState();
           quizEngine.setGameMode(mode);
           this.render();
         }
@@ -252,6 +301,16 @@ export class QuizView {
 
     input?.addEventListener('keydown', (e) => {
       quizEngine.ensureRunningOnTyping();
+
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          quizEngine.prevFlag();
+        } else {
+          quizEngine.nextFlag();
+        }
+        return;
+      }
 
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -307,18 +366,21 @@ export class QuizView {
     });
 
     this.container.querySelector('#btn-action-restart')?.addEventListener('click', () => {
+      this.resetResultModalState();
       quizEngine.restart();
       this.render();
       this.focusInput();
     });
 
     this.container.querySelector('#btn-action-start')?.addEventListener('click', () => {
+      this.resetResultModalState();
       quizEngine.start();
       this.render();
       this.focusInput();
     });
 
     this.container.querySelector('#btn-action-again')?.addEventListener('click', () => {
+      this.resetResultModalState();
       quizEngine.restart();
       quizEngine.start();
       this.render();
@@ -455,24 +517,42 @@ export class QuizView {
     }, 50);
   }
 
+  private resetResultModalState(): void {
+    this.resultModalOpen = false;
+    this.resultModalDismissed = false;
+    this.scoreSubmittedForRun = false;
+    this.currentScoreResult = null;
+  }
+
+  private closeResultsModal(): void {
+    const overlay = document.getElementById('results-modal-overlay');
+    if (overlay) overlay.remove();
+    this.resultModalOpen = false;
+    this.resultModalDismissed = true;
+    this.focusInput();
+  }
+
   private async handleGameFinished(state: QuizState): Promise<void> {
     this.resultModalOpen = true;
 
-    try {
-      this.currentScoreResult = await apiService.submitScore({
-        timeSeconds: state.elapsedSeconds,
-        countriesGuessed: state.guessedCodes.size,
-        totalCountries: state.totalInMode,
-        gameMode: state.gameMode,
-        completed: state.status === 'completed',
-        language: getLanguage()
-      });
+    if (!this.scoreSubmittedForRun) {
+      this.scoreSubmittedForRun = true;
+      try {
+        this.currentScoreResult = await apiService.submitScore({
+          timeSeconds: state.elapsedSeconds,
+          countriesGuessed: state.guessedCodes.size,
+          totalCountries: state.totalInMode,
+          gameMode: state.gameMode,
+          completed: state.status === 'completed',
+          language: getLanguage()
+        });
 
-      if (this.currentScoreResult.guest && state.status === 'completed') {
-        quizEngine.setGuestBestTime(state.gameMode, state.elapsedSeconds);
+        if (this.currentScoreResult.guest && state.status === 'completed') {
+          quizEngine.setGuestBestTime(state.gameMode, state.elapsedSeconds);
+        }
+      } catch (err) {
+        console.error('[Score Submission Error]', err);
       }
-    } catch (err) {
-      console.error('[Score Submission Error]', err);
     }
 
     this.showResultsModal(state);
@@ -493,7 +573,7 @@ export class QuizView {
 
     overlay.innerHTML = `
       <div class="modal-card">
-        <button class="modal-close-btn" id="btn-close-results">✕</button>
+        <button class="modal-close-btn" id="btn-close-results" title="Cerrar (Esc)">✕</button>
 
         <div class="modal-header">
           <div class="modal-trophy-icon">${isVictory ? '🏆' : '🏁'}</div>
@@ -540,27 +620,32 @@ export class QuizView {
     `;
 
     overlay.querySelector('#btn-close-results')?.addEventListener('click', () => {
-      overlay.remove();
-      this.resultModalOpen = false;
+      this.closeResultsModal();
+    });
+
+    // Cerrar al hacer clic en el fondo oscuro
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        this.closeResultsModal();
+      }
     });
 
     overlay.querySelector('#btn-modal-again')?.addEventListener('click', () => {
-      overlay.remove();
-      this.resultModalOpen = false;
+      this.closeResultsModal();
+      this.resetResultModalState();
       quizEngine.restart();
       quizEngine.start();
       this.render();
+      this.focusInput();
     });
 
     overlay.querySelector('#btn-modal-leaderboard')?.addEventListener('click', () => {
-      overlay.remove();
-      this.resultModalOpen = false;
+      this.closeResultsModal();
       window.location.hash = '#leaderboard';
     });
 
     overlay.querySelector('#btn-modal-login')?.addEventListener('click', () => {
-      overlay.remove();
-      this.resultModalOpen = false;
+      this.closeResultsModal();
       openAuthModal('login', () => {
         window.location.hash = '#leaderboard';
       });
@@ -609,6 +694,14 @@ export class QuizView {
       </div>
     `;
 
+    // Cerrar al hacer clic en el fondo oscuro
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        quizEngine.resume();
+        this.focusInput();
+      }
+    });
+
     overlay.querySelector('#btn-modal-resume')?.addEventListener('click', () => {
       quizEngine.resume();
       this.focusInput();
@@ -616,6 +709,7 @@ export class QuizView {
 
     overlay.querySelector('#btn-modal-restart')?.addEventListener('click', () => {
       this.hidePauseModal();
+      this.resetResultModalState();
       quizEngine.restart();
       this.render();
       this.focusInput();
