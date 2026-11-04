@@ -152,7 +152,6 @@ export class QuizView {
                   class="active-country-input"
                   placeholder="${t('placeholderAnswer')}"
                   autocomplete="off"
-                  autofocus
                   spellcheck="false"
                 />
               </div>
@@ -452,7 +451,7 @@ export class QuizView {
   private focusInput(): void {
     setTimeout(() => {
       const input = this.container.querySelector('#active-country-input') as HTMLInputElement;
-      input?.focus();
+      input?.focus({ preventScroll: true });
     }, 50);
   }
 
