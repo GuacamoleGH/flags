@@ -1,0 +1,7 @@
+# GuacamoleGH Flags — Country Flag Quiz
+> Plataforma interactiva bilingüe para poner a prueba el conocimiento de las banderas de los 196 países oficiales del mundo.
+
+- **Dominio:** https://flags.guacamolegh.es
+- **Repositorio:** https://github.com/GuacamoleGH/flags
+- **Idiomas:** Español e Inglés (cambio sin reiniciar el progreso)
+- **Funcionalidades:** Quiz interactivo en tiempo real con 196 banderas, cronómetro, validación inteligente de nombres y países compuestos, sistema de cuentas con SQLite y contraseñas hasheadas, rankings globales, perfiles de jugador e historial de partidas.

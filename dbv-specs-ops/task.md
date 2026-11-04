@@ -1,0 +1,33 @@
+# 📋 Tasks: GuacamoleGH Flags
+
+- [x] **Fase 1: Inicialización y Gobernanza DBV**
+  - [x] Inicializar repositorio Git y apuntar a `https://github.com/GuacamoleGH/flags`
+  - [x] Crear `.gitignore`, `package.json`, `tsconfig.json`, `vite.config.ts`
+  - [x] Configurar `Dockerfile` y `docker-compose.yml` para `flags.guacamolegh.es`
+  - [x] Crear especificaciones DBV (`project.config.md`, `memory.md`, `task.md`, `docs/`)
+  - [x] Crear Agent Readiness (`public/robots.txt`, `public/llms.txt`)
+- [ ] **Fase 2: Dataset Oficial de 196 Países y Banderas**
+  - [ ] Compilar `src/data/countries.data.ts` desde `paises_es.md` y `paises_en.md`
+  - [ ] Migrar y optimizar SVGs en `public/flags/`
+  - [ ] Implementar motor de normalización y alias inteligentes de países compuestos
+- [ ] **Fase 3: Backend API, Base de Datos SQLite y Seguridad**
+  - [ ] Base de datos relacional SQLite (`users`, `sessions`, `history`, `leaderboard`)
+  - [ ] Rutas de autenticación con `bcryptjs` y JWT
+  - [ ] Registro heurístico de partidas con anti-trampas
+  - [ ] Endpoints de rankings, perfiles e historial
+- [ ] **Fase 4: Motor del Quiz y Diseño Horizontal Minimalista**
+  - [ ] Cuadrícula responsive horizontal fluida (varias columnas según pantalla)
+  - [ ] Tarjeta de bandera interactiva con bloqueo de input y visual feedback
+  - [ ] Cronómetro y panel de estadísticas en tiempo real
+  - [ ] Selector bilingüe ES / EN sin resetear progreso
+  - [ ] Pantalla modal de finalización y estadísticas
+- [ ] **Fase 5: Rankings, Perfiles de Usuario e Historial**
+  - [ ] Vista SPA de Leaderboard global
+  - [ ] Vista SPA de Perfil (público y privado)
+  - [ ] Vista SPA de Historial de partidas
+  - [ ] Modales/vistas de Login y Registro
+- [ ] **Fase 6: Pruebas Automatizadas y Calidad**
+  - [ ] Tests unitarios Vitest para validación y alias
+  - [ ] Tests de endpoints de API
+  - [ ] Verificación de build y TypeScript
+- [ ] **Fase 7: Commits y Publicación en GitHub**

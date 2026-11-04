@@ -1,0 +1,8 @@
+# robots.txt para GuacamoleGH Flags
+# https://flags.guacamolegh.es
+
+User-agent: *
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=yes
+
+Sitemap: https://flags.guacamolegh.es/sitemap.xml
