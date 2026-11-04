@@ -15,7 +15,7 @@ import type { Country } from '../common/types/country';
 import { validateCountryAnswer } from './validation';
 import { getLanguage } from '../common/i18n';
 
-export type QuizStatus = 'idle' | 'running' | 'completed' | 'abandoned';
+export type QuizStatus = 'idle' | 'running' | 'paused' | 'completed' | 'abandoned';
 export type QuizGameMode = 'world' | 'europe' | 'asia' | 'africa' | 'americas' | 'oceania';
 
 export interface QuizState {
@@ -146,6 +146,32 @@ class QuizEngine {
     }
   }
 
+  public pause(): void {
+    if (this.status !== 'running') return;
+    this.status = 'paused';
+    this.stopTimer();
+    this.notify();
+  }
+
+  public resume(): void {
+    if (this.status !== 'paused') return;
+    this.status = 'running';
+    this.stopTimer();
+    this.timerInterval = setInterval(() => {
+      this.elapsedSeconds += 1;
+      this.notify();
+    }, 1000);
+    this.notify();
+  }
+
+  public togglePause(): void {
+    if (this.status === 'running') {
+      this.pause();
+    } else if (this.status === 'paused') {
+      this.resume();
+    }
+  }
+
   private stopTimer(): void {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
@@ -234,7 +260,7 @@ class QuizEngine {
   }
 
   public giveUp(): void {
-    if (this.status !== 'running') return;
+    if (this.status !== 'running' && this.status !== 'paused') return;
     this.status = 'abandoned';
     this.revealedRemaining = true;
     this.stopTimer();

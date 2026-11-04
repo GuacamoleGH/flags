@@ -325,6 +325,45 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 16px;
+}
+
+/* Botón de Pausa */
+.btn-pause-run {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-card);
+  border: 2px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-pause-run:hover {
+  border-color: var(--color-accent-green);
+  color: var(--color-accent-green);
+  background-color: rgba(0, 245, 155, 0.08);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .btn-pause-run {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .btn-pause-run:hover {
+  border-color: #059669;
+  color: #059669;
+  background-color: #f1f5f9;
 }
 
 .control-bar-col-center {
@@ -770,6 +809,36 @@
   z-index: 1000;
   padding: 20px;
   animation: fadeIn 0.2s ease-out;
+}
+
+/* Modal de Pausa (Oculta completamente las banderas con desenfoque denso) */
+.pause-modal-overlay {
+  background-color: rgba(5, 7, 10, 0.96) !important;
+  backdrop-filter: blur(32px) !important;
+  -webkit-backdrop-filter: blur(32px) !important;
+  z-index: 2000;
+}
+
+[data-theme="light"] .pause-modal-overlay {
+  background-color: rgba(248, 250, 252, 0.96) !important;
+  backdrop-filter: blur(32px) !important;
+}
+
+.pause-icon-big {
+  font-size: 3rem;
+  margin-bottom: 8px;
+  color: var(--color-accent-green);
+}
+
+[data-theme="light"] .pause-icon-big {
+  color: #059669;
+}
+
+.pause-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .modal-card {

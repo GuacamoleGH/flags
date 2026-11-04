@@ -37,6 +37,12 @@ export class QuizView {
       this.updateHud(state);
       this.updateActiveFlagCard(state);
 
+      if (state.status === 'paused') {
+        this.showPauseModal(state);
+      } else {
+        this.hidePauseModal();
+      }
+
       if (state.status === 'completed' || state.status === 'abandoned') {
         if (!this.resultModalOpen) {
           this.handleGameFinished(state);
@@ -46,6 +52,7 @@ export class QuizView {
   }
 
   public unmount(): void {
+    this.hidePauseModal();
     if (this.unsubscribeEngine) {
       this.unsubscribeEngine();
       this.unsubscribeEngine = undefined;
@@ -88,8 +95,17 @@ export class QuizView {
         <!-- Barra de Control de la Bandera Activa -->
         <div class="active-quiz-control-bar" id="active-quiz-bar">
           <div class="control-bar-centered-content">
-            <!-- Izquierda: Vista Previa de la Bandera Activa alineada al inicio -->
+            <!-- Izquierda: Botón de Pausa y Vista Previa de la Bandera Activa -->
             <div class="control-bar-col-left">
+              <button
+                class="btn-pause-run"
+                id="btn-quiz-pause"
+                title="${state.status === 'paused' ? t('btnResume') : t('btnPause')}"
+                aria-label="${t('btnPause')}"
+              >
+                ${state.status === 'paused' ? '▶' : '⏸'}
+              </button>
+
               <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
                 <img
                   id="active-flag-img"
@@ -245,6 +261,18 @@ export class QuizView {
       this.focusInput();
     });
 
+    this.container.querySelector('#btn-quiz-pause')?.addEventListener('click', () => {
+      const st = quizEngine.getSnapshot();
+      if (st.status === 'idle') {
+        quizEngine.ensureRunningOnTyping();
+        quizEngine.pause();
+      } else if (st.status === 'running') {
+        quizEngine.pause();
+      } else if (st.status === 'paused') {
+        quizEngine.resume();
+      }
+    });
+
     this.bindActionButtons();
   }
 
@@ -371,6 +399,12 @@ export class QuizView {
 
     const timerVal = this.container.querySelector('#top-timer-display');
     if (timerVal) timerVal.textContent = quizEngine.formatTime(state.elapsedSeconds);
+
+    const pauseBtn = this.container.querySelector('#btn-quiz-pause');
+    if (pauseBtn) {
+      pauseBtn.textContent = state.status === 'paused' ? '▶' : '⏸';
+      pauseBtn.setAttribute('title', state.status === 'paused' ? t('btnResume') : t('btnPause'));
+    }
 
     // Si el estado de juego ha cambiado (ej. de idle a running al empezar a escribir),
     // actualizar inmediatamente los botones de acción sin que siga apareciendo "Start Quiz"
@@ -503,5 +537,69 @@ export class QuizView {
     });
 
     document.body.appendChild(overlay);
+  }
+
+  private showPauseModal(state: QuizState): void {
+    let overlay = document.getElementById('pause-modal-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'pause-modal-overlay';
+      overlay.className = 'modal-overlay pause-modal-overlay';
+      document.body.appendChild(overlay);
+    }
+
+    overlay.innerHTML = `
+      <div class="modal-card pause-modal-card">
+        <div class="modal-header">
+          <div class="pause-icon-big">⏸</div>
+          <h2 class="modal-title">${t('modalPauseTitle')}</h2>
+          <p class="modal-subtitle">${t('modalPauseSubtitle')}</p>
+        </div>
+
+        <div class="pause-stats-grid">
+          <div class="modal-stat-box">
+            <span class="modal-stat-label">${t('lblProgress')}</span>
+            <span class="modal-stat-value">${state.guessedCodes.size} / ${state.totalInMode}</span>
+          </div>
+          <div class="modal-stat-box">
+            <span class="modal-stat-label">${t('lblTime')}</span>
+            <span class="modal-stat-value timer-val">${quizEngine.formatTime(state.elapsedSeconds)}</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn-primary" id="btn-modal-resume" style="width: 100%; justify-content: center; height: 48px; font-size: 1.05rem;">
+            ▶ ${t('btnResumeQuiz')}
+          </button>
+          <div style="display: flex; gap: 10px; justify-content: center; margin-top: 6px;">
+            <button class="quiz-btn-restart" id="btn-modal-restart">↺ ${t('btnRestart')}</button>
+            <button class="quiz-btn-danger" id="btn-modal-giveup">🏳 ${t('btnGiveUp')}</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    overlay.querySelector('#btn-modal-resume')?.addEventListener('click', () => {
+      quizEngine.resume();
+      this.focusInput();
+    });
+
+    overlay.querySelector('#btn-modal-restart')?.addEventListener('click', () => {
+      this.hidePauseModal();
+      quizEngine.restart();
+      this.render();
+      this.focusInput();
+    });
+
+    overlay.querySelector('#btn-modal-giveup')?.addEventListener('click', () => {
+      this.hidePauseModal();
+      quizEngine.giveUp();
+      this.render();
+    });
+  }
+
+  private hidePauseModal(): void {
+    const overlay = document.getElementById('pause-modal-overlay');
+    if (overlay) overlay.remove();
   }
 }
