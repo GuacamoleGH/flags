@@ -1116,6 +1116,123 @@
   color: var(--color-accent-green);
 }
 
+/* =============================================================================
+   Barra de Filtros y Ordenación del Historial
+   ============================================================================= */
+.history-controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.history-filter-group,
+.history-sort-group,
+.continent-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-surface-card);
+  padding: 5px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .history-filter-group,
+[data-theme="light"] .history-sort-group,
+[data-theme="light"] .continent-pills {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.history-pill-btn,
+.continent-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  line-height: 1.2;
+}
+
+.history-pill-btn:hover,
+.continent-pill:hover {
+  color: var(--color-text-primary);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .history-pill-btn:hover,
+[data-theme="light"] .continent-pill:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Estado activo general */
+.history-pill-btn.active,
+.continent-pill.active {
+  background-color: rgba(0, 245, 155, 0.12);
+  border-color: rgba(0, 245, 155, 0.4);
+  color: var(--color-accent-green);
+  box-shadow: 0 0 12px rgba(0, 245, 155, 0.15);
+}
+
+[data-theme="light"] .history-pill-btn.active,
+[data-theme="light"] .continent-pill.active {
+  background-color: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.4);
+  color: #059669;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.1);
+}
+
+/* Estado activo específico: Completadas */
+.history-pill-btn.filter-completed.active {
+  background-color: rgba(0, 245, 155, 0.15);
+  border-color: var(--color-accent-green);
+  color: var(--color-accent-green);
+  box-shadow: 0 0 12px rgba(0, 245, 155, 0.25);
+}
+
+[data-theme="light"] .history-pill-btn.filter-completed.active {
+  background-color: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #047857;
+}
+
+/* Estado activo específico: Abandonadas */
+.history-pill-btn.filter-abandoned.active {
+  background-color: rgba(245, 158, 11, 0.15);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+[data-theme="light"] .history-pill-btn.filter-abandoned.active {
+  background-color: rgba(245, 158, 11, 0.15);
+  border-color: #d97706;
+  color: #b45309;
+}
+
+.history-pill-btn .pill-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.history-pill-btn .pill-label {
+  line-height: 1;
+}
+
 /* Tablas de Leaderboard e Historial */
 .data-table-wrap {
   background-color: var(--color-bg-base);

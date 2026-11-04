@@ -71,25 +71,29 @@ export class HistoryView {
         </div>
 
         <!-- Controles de Filtro y Ordenación -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-          <div class="continent-pills">
-            <button class="continent-pill ${this.currentFilter === 'all' ? 'active' : ''}" data-filter="all">
-              ${t('filterAll')}
+        <div class="history-controls-bar">
+          <div class="history-filter-group" role="group" aria-label="Filtro de partidas">
+            <button class="history-pill-btn continent-pill ${this.currentFilter === 'all' ? 'active' : ''}" data-filter="all">
+              <span class="pill-label">${t('filterAll')}</span>
             </button>
-            <button class="continent-pill ${this.currentFilter === 'completed' ? 'active' : ''}" data-filter="completed">
-              ✓ ${t('filterCompleted')}
+            <button class="history-pill-btn continent-pill filter-completed ${this.currentFilter === 'completed' ? 'active' : ''}" data-filter="completed">
+              <span class="pill-icon">✓</span>
+              <span class="pill-label">${t('filterCompleted')}</span>
             </button>
-            <button class="continent-pill ${this.currentFilter === 'abandoned' ? 'active' : ''}" data-filter="abandoned">
-              ✕ ${t('filterAbandoned')}
+            <button class="history-pill-btn continent-pill filter-abandoned ${this.currentFilter === 'abandoned' ? 'active' : ''}" data-filter="abandoned">
+              <span class="pill-icon">✕</span>
+              <span class="pill-label">${t('filterAbandoned')}</span>
             </button>
           </div>
 
-          <div style="display: flex; gap: 8px;">
-            <button class="continent-pill ${this.currentSort === 'date' ? 'active' : ''}" data-sort="date">
-              📅 ${t('sortDate')}
+          <div class="history-sort-group" role="group" aria-label="Ordenación de partidas">
+            <button class="history-pill-btn continent-pill ${this.currentSort === 'date' ? 'active' : ''}" data-sort="date">
+              <span class="pill-icon">📅</span>
+              <span class="pill-label">${t('sortDate')}</span>
             </button>
-            <button class="continent-pill ${this.currentSort === 'time' ? 'active' : ''}" data-sort="time">
-              ⚡ ${t('sortTime')}
+            <button class="history-pill-btn continent-pill ${this.currentSort === 'time' ? 'active' : ''}" data-sort="time">
+              <span class="pill-icon">⚡</span>
+              <span class="pill-label">${t('sortTime')}</span>
             </button>
           </div>
         </div>
