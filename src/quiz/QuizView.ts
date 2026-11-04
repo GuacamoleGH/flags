@@ -160,19 +160,25 @@ export class QuizView {
   private renderActionsHtml(status: string): string {
     if (status === 'running') {
       return `
-        <button class="btn-link-danger" id="btn-action-giveup">${t('btnGiveUp')}</button>
-        <button class="btn-link-subtle" id="btn-action-restart">${t('btnRestart')}</button>
+        <div class="running-actions-group">
+          <button class="quiz-btn-danger" id="btn-action-giveup" title="${t('btnGiveUp')}">
+            🏳 ${t('btnGiveUp')}
+          </button>
+          <button class="quiz-btn-restart" id="btn-action-restart" title="${t('btnRestart')}">
+            ↺ ${t('btnRestart')}
+          </button>
+        </div>
       `;
     }
     if (status === 'completed' || status === 'abandoned') {
       return `
-        <button class="btn-primary" id="btn-action-again" style="padding: 8px 16px; font-size: 0.9rem;">
+        <button class="btn-primary btn-quiz-action" id="btn-action-again">
           ↺ ${t('btnPlayAgain')}
         </button>
       `;
     }
     return `
-      <button class="btn-primary" id="btn-action-start" style="padding: 8px 16px; font-size: 0.9rem;">
+      <button class="btn-primary btn-quiz-action" id="btn-action-start">
         ▶ ${t('btnStart')}
       </button>
     `;
