@@ -293,31 +293,66 @@
 }
 
 /* =============================================================================
-   Barra Superior de Control y Respuesta Activa (Totalmente Centrada y Más Grande)
+   Barra Superior de Control y Respuesta Activa
    ============================================================================= */
 .active-quiz-control-bar {
   background-color: var(--color-bg-base);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
-  padding: 18px 24px;
+  padding: 16px 24px;
   margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: var(--shadow-card);
-  position: sticky;
-  top: calc(var(--header-height) + 8px);
-  z-index: 90;
+  width: 100%;
 }
 
 .control-bar-centered-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 20px;
-  flex-wrap: wrap;
   width: 100%;
-  max-width: 1200px;
+}
+
+.control-bar-col-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+.control-bar-col-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex: 1;
+  max-width: 650px;
+}
+
+.control-bar-col-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+  .control-bar-centered-content {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .control-bar-col-center {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+  }
+  .control-bar-col-left {
+    order: 1;
+  }
+  .control-bar-col-right {
+    order: 2;
+  }
 }
 
 /* Vista previa de la bandera activa (Más Grande y SIN FONDO NEGRO) */

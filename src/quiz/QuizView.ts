@@ -85,63 +85,67 @@ export class QuizView {
           </div>
         </div>
 
-        <!-- Barra de Control Centralizada y Fija -->
+        <!-- Barra de Control de la Bandera Activa -->
         <div class="active-quiz-control-bar" id="active-quiz-bar">
           <div class="control-bar-centered-content">
-            <!-- Vista Previa de la Bandera Activa -->
-            <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
-              <img
-                id="active-flag-img"
-                src="${activeCountry.flagUrl}"
-                alt="Bandera a responder"
-                class="active-flag-img"
-              />
+            <!-- Izquierda: Vista Previa de la Bandera Activa alineada al inicio -->
+            <div class="control-bar-col-left">
+              <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
+                <img
+                  id="active-flag-img"
+                  src="${activeCountry.flagUrl}"
+                  alt="Bandera a responder"
+                  class="active-flag-img"
+                />
+              </div>
             </div>
 
-            <!-- Botón Anterior (Grande) -->
-            <button class="nav-flag-btn large-nav-btn" id="btn-flag-prev" title="${t('btnPrev')}">
-              ${t('btnPrev')}
-            </button>
+            <!-- Centro: Navegación y Campo Principal de Entrada -->
+            <div class="control-bar-col-center">
+              <button class="nav-flag-btn large-nav-btn" id="btn-flag-prev" title="${t('btnPrev')}">
+                ${t('btnPrev')}
+              </button>
 
-            <!-- Campo Principal de Entrada -->
-            <div class="active-input-container">
-              <label class="active-input-label" for="active-country-input">
-                ${t('lblEnterCountry')}
-              </label>
-              <input
-                type="text"
-                id="active-country-input"
-                class="active-country-input"
-                placeholder="${t('placeholderAnswer')}"
-                autocomplete="off"
-                autofocus
-                spellcheck="false"
-              />
+              <div class="active-input-container">
+                <label class="active-input-label" for="active-country-input">
+                  ${t('lblEnterCountry')}
+                </label>
+                <input
+                  type="text"
+                  id="active-country-input"
+                  class="active-country-input"
+                  placeholder="${t('placeholderAnswer')}"
+                  autocomplete="off"
+                  autofocus
+                  spellcheck="false"
+                />
+              </div>
+
+              <button class="nav-flag-btn large-nav-btn" id="btn-flag-next" title="${t('btnNext')}">
+                ${t('btnNext')}
+              </button>
             </div>
 
-            <!-- Botón Siguiente (Grande) -->
-            <button class="nav-flag-btn large-nav-btn" id="btn-flag-next" title="${t('btnNext')}">
-              ${t('btnNext')}
-            </button>
+            <!-- Derecha: Estadísticas y Acciones alineadas al final -->
+            <div class="control-bar-col-right">
+              <div class="quiz-top-stats">
+                <div class="top-stat-item">
+                  <span class="top-stat-label">${t('lblProgress')}</span>
+                  <span class="top-stat-number" id="top-score-display">
+                    ${state.guessedCodes.size}/${state.totalInMode}
+                  </span>
+                </div>
 
-            <!-- Estadísticas y Temporizador -->
-            <div class="quiz-top-stats">
-              <div class="top-stat-item">
-                <span class="top-stat-label">${t('lblProgress')}</span>
-                <span class="top-stat-number" id="top-score-display">
-                  ${state.guessedCodes.size}/${state.totalInMode}
-                </span>
-              </div>
+                <div class="top-stat-item">
+                  <span class="top-stat-label">${t('lblTime')}</span>
+                  <span class="top-stat-timer" id="top-timer-display">
+                    ${quizEngine.formatTime(state.elapsedSeconds)}
+                  </span>
+                </div>
 
-              <div class="top-stat-item">
-                <span class="top-stat-label">${t('lblTime')}</span>
-                <span class="top-stat-timer" id="top-timer-display">
-                  ${quizEngine.formatTime(state.elapsedSeconds)}
-                </span>
-              </div>
-
-              <div class="top-actions-wrap" id="top-actions-container">
-                ${this.renderActionsHtml(state.status)}
+                <div class="top-actions-wrap" id="top-actions-container">
+                  ${this.renderActionsHtml(state.status)}
+                </div>
               </div>
             </div>
           </div>
