@@ -318,14 +318,83 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   width: 100%;
-  gap: 16px;
+  gap: 32px;
 }
 
 .control-bar-col-left {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.col-left-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Insignia de Continente de la Bandera Activa */
+.active-flag-continent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.continent-badge-icon {
+  font-size: 1rem;
+}
+
+[data-theme="light"] .active-flag-continent-badge {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Botón Saltar Bandera */
+.btn-skip-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-surface-card);
+  border: 1.5px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-skip-flag:hover {
+  border-color: var(--color-accent-green);
+  color: var(--color-accent-green);
+  background-color: rgba(0, 245, 155, 0.08);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .btn-skip-flag {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .btn-skip-flag:hover {
+  border-color: #059669;
+  color: #059669;
+  background-color: #f1f5f9;
 }
 
 /* Botón de Pausa */
@@ -376,7 +445,8 @@
 .control-bar-col-right {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 @media (max-width: 1100px) {

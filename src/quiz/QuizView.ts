@@ -95,17 +95,37 @@ export class QuizView {
         <!-- Barra de Control de la Bandera Activa -->
         <div class="active-quiz-control-bar" id="active-quiz-bar">
           <div class="control-bar-centered-content">
-            <!-- Izquierda: Botón de Pausa y Vista Previa de la Bandera Activa -->
+            <!-- Izquierda: Herramientas (Pausa, Continente, Saltar) y Bandera Activa -->
             <div class="control-bar-col-left">
-              <button
-                class="btn-pause-run"
-                id="btn-quiz-pause"
-                title="${state.status === 'paused' ? t('btnResume') : t('btnPause')}"
-                aria-label="${t('btnPause')}"
-              >
-                ${state.status === 'paused' ? '▶' : '⏸'}
-              </button>
+              <div class="col-left-tools">
+                <button
+                  class="btn-pause-run"
+                  id="btn-quiz-pause"
+                  title="${state.status === 'paused' ? t('btnResume') : t('btnPause')}"
+                  aria-label="${t('btnPause')}"
+                >
+                  ${state.status === 'paused' ? '▶' : '⏸'}
+                </button>
 
+                <div class="active-flag-continent-badge" id="active-flag-continent-badge" title="Continente de la bandera activa">
+                  <span class="continent-badge-icon">🌍</span>
+                  <span class="continent-badge-name" id="active-flag-continent-name">
+                    ${getLanguage() === 'es' ? activeCountry.continentEs : activeCountry.continentEn}
+                  </span>
+                </div>
+
+                <button
+                  class="btn-skip-flag"
+                  id="btn-flag-skip"
+                  title="${t('btnSkip')}"
+                  aria-label="${t('btnSkip')}"
+                >
+                  <span style="font-size: 1.1rem; line-height: 1;">↷</span>
+                  <span>${t('btnSkip')}</span>
+                </button>
+              </div>
+
+              <!-- Vista Previa de la Bandera Activa (Alineada al extremo derecho de la columna izquierda) -->
               <div class="active-flag-preview-box" id="active-flag-preview" title="Bandera actual a responder">
                 <img
                   id="active-flag-img"
@@ -261,6 +281,11 @@ export class QuizView {
       this.focusInput();
     });
 
+    this.container.querySelector('#btn-flag-skip')?.addEventListener('click', () => {
+      quizEngine.nextFlag();
+      this.focusInput();
+    });
+
     this.container.querySelector('#btn-quiz-pause')?.addEventListener('click', () => {
       const st = quizEngine.getSnapshot();
       if (st.status === 'idle') {
@@ -365,6 +390,12 @@ export class QuizView {
     if (previewImg && previewImg.getAttribute('src') !== activeCountry.flagUrl) {
       previewImg.src = activeCountry.flagUrl;
       previewImg.alt = `Bandera actual`;
+    }
+
+    const continentSpan = this.container.querySelector('#active-flag-continent-name');
+    if (continentSpan) {
+      const lang = getLanguage();
+      continentSpan.textContent = lang === 'es' ? activeCountry.continentEs : activeCountry.continentEn;
     }
 
     // Actualizar clase activa en la cuadrícula sin scroll
