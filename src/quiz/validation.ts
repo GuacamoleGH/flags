@@ -13,6 +13,49 @@
 import type { Country, SupportedLanguage, AnswerValidationResult } from '../common/types/country';
 
 /**
+ * Mapeo estricto de atajos para países compuestos según el idioma activo.
+ * Evita que atajos o nombres en inglés sean aceptados cuando el juego está en español y viceversa.
+ */
+const COMPOUND_SHORT_BY_LANG: Record<string, { es: readonly string[]; en: readonly string[] }> = {
+  ag: { es: ['antigua'], en: ['antigua'] },
+  sa: { es: ['arabia saudita', 'arabia saudi'], en: ['saudi arabia'] },
+  ba: { es: ['bosnia'], en: ['bosnia'] },
+  cv: { es: ['cabo verde'], en: ['cape verde'] },
+  va: { es: ['vaticano', 'santa sede'], en: ['vatican', 'holy see'] },
+  kp: { es: ['corea del norte'], en: ['north korea'] },
+  kr: { es: ['corea del sur'], en: ['south korea'] },
+  ci: { es: ['costa de marfil'], en: ['ivory coast', 'cote d ivoire'] },
+  cr: { es: ['costa rica'], en: ['costa rica'] },
+  sv: { es: ['el salvador', 'salvador'], en: ['el salvador', 'salvador'] },
+  ae: { es: ['eau', 'emiratos'], en: ['uae', 'emirates'] },
+  us: { es: ['eeuu', 'estados unidos'], en: ['usa', 'united states', 'america'] },
+  gq: { es: ['guinea ecuatorial'], en: ['equatorial guinea'] },
+  gw: { es: ['guinea bisau', 'guinea bissau'], en: ['guinea bissau'] },
+  mh: { es: ['marshall'], en: ['marshall'] },
+  sb: { es: ['salomon'], en: ['solomon'] },
+  mk: { es: ['macedonia'], en: ['macedonia'] },
+  fm: { es: ['micronesia'], en: ['micronesia'] },
+  nz: { es: ['nueva zelanda'], en: ['new zealand'] },
+  nl: { es: ['holanda', 'paises bajos'], en: ['holland', 'netherlands'] },
+  pg: { es: ['papua', 'png'], en: ['papua', 'png'] },
+  gb: { es: ['reino unido', 'gran bretana'], en: ['uk', 'great britain'] },
+  cf: { es: ['rca', 'centroafrica', 'rep centroafricana'], en: ['car', 'central africa'] },
+  cz: { es: ['chequia', 'republica checa'], en: ['czechia', 'czech republic'] },
+  cg: { es: ['congo brazzaville', 'republica del congo'], en: ['republic of the congo'] },
+  cd: { es: ['rdc', 'rd congo', 'congo kinshasa'], en: ['drc', 'dr congo'] },
+  do: { es: ['dominicana', 'rep dominicana'], en: ['dominican rep'] },
+  kn: { es: ['san cristobal'], en: ['st kitts', 'saint kitts'] },
+  sm: { es: ['san marino'], en: ['san marino'] },
+  vc: { es: ['san vicente'], en: ['st vincent', 'saint vincent'] },
+  lc: { es: ['santa lucia'], en: ['st lucia'] },
+  st: { es: ['santo tome', 'sao tome'], en: ['sao tome'] },
+  sl: { es: ['sierra leona'], en: ['sierra leone'] },
+  ss: { es: ['sudan del sur'], en: ['south sudan'] },
+  tl: { es: ['timor'], en: ['timor'] },
+  tt: { es: ['trinidad'], en: ['trinidad'] },
+};
+
+/**
  * Normaliza una cadena de texto para comparación flexible:
  * - Conversión a minúsculas.
  * - Eliminación de diacríticos y tildes (á->a, é->e, etc.).
@@ -37,10 +80,10 @@ export function normalizeText(text: string): string {
  * Comprueba si la respuesta escrita por el usuario coincide con un país dado.
  *
  * Reglas estrictas:
- * 1. Coincidencia exacta con el nombre oficial en el idioma activo (o en el otro idioma como cortesía).
- * 2. Coincidencia exacta con cualquiera de los alias explícitos configurados.
- * 3. En países compuestos, coincidencia con las abreviaciones inequívocas (`compoundShort`).
- * 4. NUNCA se aceptan prefijos parciales arbitrarios (ej. 'esp' NO valida España).
+ * 1. Coincidencia exacta con el nombre oficial en el idioma activo exclusivamente.
+ * 2. Coincidencia exacta con cualquiera de los alias explícitos configurados para el idioma activo.
+ * 3. En países compuestos, coincidencia con las abreviaciones inequívocas del idioma activo.
+ * 4. NUNCA se aceptan respuestas en otro idioma ni prefijos parciales arbitrarios.
  *
  * @param country Objeto del país
  * @param rawInput Texto escrito por el usuario
@@ -56,21 +99,20 @@ export function validateCountryAnswer(
     return { matched: false };
   }
 
-  // Comprobar si coincide con un atajo configurado para países compuestos (ej: 'sao tome', 'macedonia')
-  const isCompoundShortcut = country.isCompound && country.compoundShort.some(
+  // 1. Obtener atajos válidos para países compuestos en el idioma activo
+  const langShortcuts = COMPOUND_SHORT_BY_LANG[country.code]?.[lang];
+  const activeShortcuts = country.isCompound
+    ? (langShortcuts ?? country.compoundShort)
+    : [];
+
+  const isCompoundShortcut = activeShortcuts.some(
     shortForm => normalizeText(shortForm) === normalizedInput
   );
 
-  // 1. Validar nombre principal en el idioma seleccionado
+  // 2. Validar nombre principal en el idioma seleccionado
   const primaryName = lang === 'es' ? country.nameEs : country.nameEn;
   if (normalizeText(primaryName) === normalizedInput) {
     return { matched: true, matchedName: primaryName, isCompoundShortcut };
-  }
-
-  // 2. Validar nombre principal en el idioma secundario
-  const secondaryName = lang === 'es' ? country.nameEn : country.nameEs;
-  if (normalizeText(secondaryName) === normalizedInput) {
-    return { matched: true, matchedName: secondaryName, isCompoundShortcut };
   }
 
   // 3. Validar alias oficiales configurados para el idioma activo
@@ -81,19 +123,11 @@ export function validateCountryAnswer(
     }
   }
 
-  // 4. Validar alias del idioma secundario
-  const secondaryAliases = lang === 'es' ? country.aliasesEn : country.aliasesEs;
-  for (const alias of secondaryAliases) {
-    if (normalizeText(alias) === normalizedInput) {
-      return { matched: true, matchedName: alias, isCompoundShortcut };
-    }
-  }
-
-  // 5. Validar atajo explícito si no estaba en alias
+  // 4. Validar atajo explícito según idioma activo
   if (isCompoundShortcut) {
     return {
       matched: true,
-      matchedName: lang === 'es' ? country.nameEs : country.nameEn,
+      matchedName: primaryName,
       isCompoundShortcut: true
     };
   }
@@ -103,7 +137,7 @@ export function validateCountryAnswer(
 
 /**
  * Busca sugerencias visuales entre los países aún no acertados.
- * Requiere un mínimo de 3 caracteres y NO valida la respuesta hasta confirmación expresa.
+ * Requiere un mínimo de 3 caracteres y busca únicamente en el idioma activo.
  */
 export function getCountrySuggestions(
   rawInput: string,
@@ -119,17 +153,24 @@ export function getCountrySuggestions(
   const results: Country[] = [];
   for (const country of unansweredCountries) {
     const primaryName = normalizeText(lang === 'es' ? country.nameEs : country.nameEn);
-    const secondaryName = normalizeText(lang === 'es' ? country.nameEn : country.nameEs);
-
-    if (primaryName.startsWith(normalizedInput) || secondaryName.startsWith(normalizedInput)) {
+    if (primaryName.startsWith(normalizedInput)) {
       results.push(country);
       if (results.length >= maxResults) break;
       continue;
     }
 
-    // Comprobar atajos de compuestos
+    const activeAliases = lang === 'es' ? country.aliasesEs : country.aliasesEn;
+    const matchAlias = activeAliases.some(alias => normalizeText(alias).startsWith(normalizedInput));
+    if (matchAlias) {
+      results.push(country);
+      if (results.length >= maxResults) break;
+      continue;
+    }
+
+    // Comprobar atajos de compuestos según idioma activo
     if (country.isCompound) {
-      const matchShort = country.compoundShort.some(s => normalizeText(s).startsWith(normalizedInput));
+      const activeShortcuts = COMPOUND_SHORT_BY_LANG[country.code]?.[lang] ?? [];
+      const matchShort = activeShortcuts.some(s => normalizeText(s).startsWith(normalizedInput));
       if (matchShort) {
         results.push(country);
         if (results.length >= maxResults) break;

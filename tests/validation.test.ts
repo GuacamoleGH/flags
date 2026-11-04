@@ -50,9 +50,18 @@ describe('Smart Answer Validation Engine', () => {
     expect(validateCountryAnswer(spain, 'ESPAÑA', 'es').matched).toBe(true);
   });
 
-  it('accepts exact name in English', () => {
+  it('enforces strict language isolation: Spanish rejects English names and vice versa', () => {
+    // Modo Español
+    expect(validateCountryAnswer(spain, 'España', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(spain, 'espana', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(spain, 'Spain', 'es').matched).toBe(false);
+    expect(validateCountryAnswer(spain, 'spain', 'es').matched).toBe(false);
+
+    // Modo Inglés
     expect(validateCountryAnswer(spain, 'Spain', 'en').matched).toBe(true);
-    expect(validateCountryAnswer(spain, 'spain', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(spain, 'spain', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(spain, 'España', 'en').matched).toBe(false);
+    expect(validateCountryAnswer(spain, 'espana', 'en').matched).toBe(false);
   });
 
   it('REJECTS aggressive autocomplete/prefixes on simple country names', () => {
@@ -76,10 +85,19 @@ describe('Smart Answer Validation Engine', () => {
     expect(result.isCompoundShortcut).toBe(true);
   });
 
-  it('recognizes common acronyms: USA, EEUU, Holanda', () => {
+  it('strictly isolates acronyms and compound shortcuts by language', () => {
+    // USA / EEUU
     expect(validateCountryAnswer(usa, 'USA', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(usa, 'USA', 'es').matched).toBe(false);
     expect(validateCountryAnswer(usa, 'EEUU', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(usa, 'EEUU', 'en').matched).toBe(false);
+    expect(validateCountryAnswer(usa, 'United States', 'es').matched).toBe(false);
+    expect(validateCountryAnswer(usa, 'Estados Unidos', 'en').matched).toBe(false);
+
+    // Holanda / Holland
     expect(validateCountryAnswer(netherlands, 'Holanda', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(netherlands, 'Holland', 'es').matched).toBe(false);
     expect(validateCountryAnswer(netherlands, 'Holland', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(netherlands, 'Holanda', 'en').matched).toBe(false);
   });
 });
