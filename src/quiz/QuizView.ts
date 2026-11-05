@@ -214,18 +214,20 @@ export class QuizView {
             <!-- Derecha: Estadísticas y Acciones alineadas al final -->
             <div class="control-bar-col-right">
               <div class="quiz-top-stats">
-                <div class="top-stat-item">
-                  <span class="top-stat-label">${t('lblProgress')}</span>
-                  <span class="top-stat-number" id="top-score-display">
-                    ${state.guessedCodes.size}/${state.totalInMode}
-                  </span>
-                </div>
+                <div class="stats-indicators-group">
+                  <div class="top-stat-item">
+                    <span class="top-stat-label">${t('lblProgress')}</span>
+                    <span class="top-stat-number" id="top-score-display">
+                      ${state.guessedCodes.size}/${state.totalInMode}
+                    </span>
+                  </div>
 
-                <div class="top-stat-item">
-                  <span class="top-stat-label">${t('lblTime')}</span>
-                  <span class="top-stat-timer" id="top-timer-display">
-                    ${quizEngine.formatTime(state.elapsedSeconds)}
-                  </span>
+                  <div class="top-stat-item">
+                    <span class="top-stat-label">${t('lblTime')}</span>
+                    <span class="top-stat-timer" id="top-timer-display">
+                      ${quizEngine.formatTime(state.elapsedSeconds)}
+                    </span>
+                  </div>
                 </div>
 
                 <div class="top-actions-wrap" id="top-actions-container">

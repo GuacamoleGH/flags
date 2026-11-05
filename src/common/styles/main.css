@@ -494,26 +494,36 @@
     padding: 6px 0 32px 0;
   }
 
-  /* Cabecera Móvil Compacta y Equilibrada */
+  /* Cabecera Móvil en 2 Filas Limpias y Proporcionadas */
   .site-header {
     height: auto;
     padding: 8px 0;
   }
 
   .header-content {
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 6px 10px;
+    width: 100%;
   }
 
   .brand-link {
-    font-size: 1.05rem;
+    grid-column: 1;
+    grid-row: 1;
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
   .brand-logo-img {
     width: 26px;
     height: 26px;
+    border-radius: 6px;
   }
 
   .brand-badge {
@@ -521,58 +531,109 @@
     padding: 1px 6px;
   }
 
-  .header-nav {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-    gap: 6px;
-    padding-top: 6px;
-    border-top: 1px solid var(--color-border-subtle);
-  }
-
-  .nav-link {
-    font-size: 0.85rem;
-    padding: 4px 10px;
-  }
-
   .header-actions {
+    grid-column: 2;
+    grid-row: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
     gap: 6px;
   }
 
   .theme-toggle-btn {
     width: 32px;
     height: 32px;
-  }
-
-  .lang-btn {
-    padding: 3px 8px;
-    font-size: 0.75rem;
-  }
-
-  /* Selector de Modo de Juego en Móvil */
-  .game-mode-selector-bar {
-    gap: 6px;
-    margin-bottom: 8px;
-    margin-top: 4px;
-  }
-
-  .mode-bar-label {
-    display: none; /* Ahorra espacio vertical innecesario en pantallas pequeñas */
-  }
-
-  .mode-pills-wrap {
-    gap: 6px;
+    min-width: 32px;
+    border-radius: 8px;
+    padding: 0;
+    display: flex;
+    align-items: center;
     justify-content: center;
   }
 
-  .mode-pill-btn {
+  .theme-toggle-btn svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .lang-switcher {
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .lang-btn {
+    padding: 3px 7px;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .header-login-btn {
     padding: 4px 10px;
     font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .header-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: var(--radius-full);
+  }
+
+  /* Selector de Modo de Juego en Móvil: Tira horizontal deslizable sin saltos */
+  .game-mode-selector-bar {
+    margin: 8px 0 10px 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .mode-bar-label {
+    display: none;
+  }
+
+  .mode-pills-wrap {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 2px 4px;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .mode-pills-wrap::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mode-pill-btn {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
   }
 
   /* Barra de Control de Bandera Activa en Móvil */
   .active-quiz-control-bar {
-    padding: 12px;
+    padding: 12px 14px;
     margin-bottom: 12px;
     border-radius: var(--radius-md);
     top: 4px;
@@ -586,7 +647,7 @@
     width: 100%;
   }
 
-  /* Fila 1 Móvil: Herramientas en fila superior y bandera centrada */
+  /* Fila 1 Móvil: Herramientas (Pausa, Continente, Saltar) y Bandera centrada */
   .control-bar-col-left {
     order: 1;
     display: flex;
@@ -644,12 +705,14 @@
     width: 44px;
     height: 44px;
     min-width: 44px;
+    max-width: 44px;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-full);
-    font-size: 1.3rem;
+    font-size: 1.35rem;
+    font-weight: 800;
   }
 
   .nav-flag-btn .nav-btn-text {
@@ -675,46 +738,101 @@
     text-align: center;
   }
 
-  /* Fila 3 Móvil: Puntuación/Tiempo a la izquierda y botones de acción a la derecha */
+  /* Fila 3 Móvil: Puntuación/Tiempo arriba y botones de acción debajo */
   .control-bar-col-right {
     order: 3;
     width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
 
   .quiz-top-stats {
     width: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .stats-indicators-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    width: 100%;
+    padding: 2px 0;
   }
 
   .top-stat-item {
     display: flex;
     align-items: baseline;
-    gap: 4px;
-  }
-
-  .top-stat-label {
-    font-size: 0.68rem;
-  }
-
-  .top-stat-number,
-  .top-stat-timer {
-    font-size: 1.15rem;
-  }
-
-  .top-actions-wrap {
-    display: flex;
-    align-items: center;
     gap: 6px;
   }
 
+  .top-stat-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .top-stat-number {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+  }
+
+  .top-stat-timer {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-accent-green);
+  }
+
+  .top-actions-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .running-actions-group {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .quiz-btn-danger,
+  .quiz-btn-restart {
+    flex: 1;
+    max-width: 165px;
+    height: 40px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+
   .btn-quiz-action {
-    padding: 7px 14px;
-    font-size: 0.82rem;
+    width: 100%;
+    max-width: 280px;
+    height: 42px;
+    padding: 0 16px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
@@ -816,6 +934,12 @@
   align-items: center;
   gap: 24px;
   flex-shrink: 0;
+}
+
+.stats-indicators-group {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
 .top-stat-item {

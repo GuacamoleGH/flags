@@ -48,7 +48,7 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
     <div class="site-container header-content">
       <a href="#quiz" class="brand-link">
         <img src="/logo.png" alt="GuacamoleGH Flags Logo" class="brand-logo-img" />
-        <span>${t('appTitle')}</span>
+        <span class="brand-name-full">${t('appTitle')}</span>
         <span class="brand-badge">196</span>
       </a>
 
@@ -96,8 +96,9 @@ export function renderHeader(activeRoute: string, onOpenAuth: () => void): HTMLE
           </a>
           <button class="btn-outline" id="btn-header-logout" style="padding: 4px 10px; font-size: 0.8rem;">${t('navLogout')}</button>
         ` : `
-          <button class="btn-primary" id="btn-header-login" style="padding: 6px 14px; font-size: 0.85rem;">
-            ${t('navLogin')}
+          <button class="btn-primary header-login-btn" id="btn-header-login">
+            <span class="login-btn-icon">👤</span>
+            <span class="login-btn-text">${t('navLogin')}</span>
           </button>
         `}
       </div>
