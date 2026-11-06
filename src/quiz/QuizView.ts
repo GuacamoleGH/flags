@@ -304,16 +304,6 @@ export class QuizView {
     };
 
     input?.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          quizEngine.prevFlag();
-        } else {
-          quizEngine.nextFlag();
-        }
-        return;
-      }
-
       if (e.key === 'Enter') {
         e.preventDefault();
         quizEngine.ensureRunningOnTyping();
@@ -321,20 +311,8 @@ export class QuizView {
         return;
       }
 
-      if (e.key === 'ArrowRight' && (e.ctrlKey || e.altKey || input.value === '')) {
-        e.preventDefault();
-        quizEngine.nextFlag();
-        return;
-      }
-
-      if (e.key === 'ArrowLeft' && (e.ctrlKey || e.altKey || input.value === '')) {
-        e.preventDefault();
-        quizEngine.prevFlag();
-        return;
-      }
-
-      // Iniciar el temporizador al escribir cualquier caracter válido
-      if (!['Shift', 'Control', 'Alt', 'Meta', 'Escape', 'CapsLock', 'Tab'].includes(e.key)) {
+      // Iniciar el temporizador al escribir cualquier caracter válido (excluyendo navegación y modificadores)
+      if (!['Shift', 'Control', 'Alt', 'Meta', 'Escape', 'CapsLock', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
         quizEngine.ensureRunningOnTyping();
       }
     });
