@@ -72,6 +72,8 @@ scoresRouter.post('/submit', optionalAuth, (req: AuthenticatedRequest, res: Resp
       WHERE user_id = ? AND game_mode = ?
     `).get(userId, mode);
 
+    const previousBestTimeSeconds: number | null = currentBest ? currentBest.best_time_seconds : null;
+
     let isPersonalBest = false;
     if (isCompleted) {
       if (!currentBest || parsedTime < currentBest.best_time_seconds) {
@@ -122,6 +124,10 @@ scoresRouter.post('/submit', optionalAuth, (req: AuthenticatedRequest, res: Resp
       globalRank = rankRow ? rankRow.rank : null;
     }
 
+    const timeDiffSeconds = isCompleted && previousBestTimeSeconds !== null
+      ? (parsedTime - previousBestTimeSeconds)
+      : null;
+
     res.status(201).json({
       recorded: true,
       guest: false,
@@ -132,7 +138,9 @@ scoresRouter.post('/submit', optionalAuth, (req: AuthenticatedRequest, res: Resp
       completed: isCompleted,
       isPersonalBest,
       rank: globalRank,
-      bestTimeSeconds: isPersonalBest ? parsedTime : (currentBest?.best_time_seconds || null)
+      bestTimeSeconds: isPersonalBest ? parsedTime : (currentBest?.best_time_seconds || null),
+      previousBestTimeSeconds,
+      timeDiffSeconds
     });
   } catch (error) {
     console.error('[Score Submit Error]', error);

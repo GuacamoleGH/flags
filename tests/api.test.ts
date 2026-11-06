@@ -124,7 +124,10 @@ describe('Backend API & Security Integration', () => {
     expect(data.isPersonalBest).toBe(true);
     expect(data.rank).toBe(1);
     expect(data.bestTimeSeconds).toBe(320);
+    expect(data.previousBestTimeSeconds).toBeNull();
+    expect(data.timeDiffSeconds).toBeNull();
   });
+
 
   it('GET /api/leaderboard displays real database record and current user position', async () => {
     const res = await fetch(`${baseUrl}/api/leaderboard`, {
@@ -158,5 +161,53 @@ describe('Backend API & Security Integration', () => {
     expect(data.history.length).toBe(1);
     expect(data.history[0].time_seconds).toBe(320);
     expect(data.history[0].completed).toBe(1);
+  });
+
+  it('POST /api/scores/submit calculates improvement and worsening diff against previous PB', async () => {
+    // 1. Mejora tiempo de 320 a 300 segundos (-20s)
+    const resImprove = await fetch(`${baseUrl}/api/scores/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        timeSeconds: 300,
+        countriesGuessed: 196,
+        totalCountries: 196,
+        gameMode: 'world',
+        completed: true,
+        language: 'es'
+      })
+    });
+
+    expect(resImprove.status).toBe(201);
+    const dataImprove = await resImprove.json();
+    expect(dataImprove.isPersonalBest).toBe(true);
+    expect(dataImprove.previousBestTimeSeconds).toBe(320);
+    expect(dataImprove.timeDiffSeconds).toBe(-20);
+
+    // 2. Empeora tiempo respecto a su nuevo récord de 300 segundos (+15s)
+    const resWorse = await fetch(`${baseUrl}/api/scores/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        timeSeconds: 315,
+        countriesGuessed: 196,
+        totalCountries: 196,
+        gameMode: 'world',
+        completed: true,
+        language: 'es'
+      })
+    });
+
+    expect(resWorse.status).toBe(201);
+    const dataWorse = await resWorse.json();
+    expect(dataWorse.isPersonalBest).toBe(false);
+    expect(dataWorse.previousBestTimeSeconds).toBe(300);
+    expect(dataWorse.timeDiffSeconds).toBe(15);
   });
 });

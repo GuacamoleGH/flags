@@ -34,6 +34,8 @@ export interface ScoreSubmissionResult {
   isPersonalBest?: boolean;
   rank?: number | null;
   bestTimeSeconds?: number | null;
+  previousBestTimeSeconds?: number | null;
+  timeDiffSeconds?: number | null;
   message?: string;
 }
 

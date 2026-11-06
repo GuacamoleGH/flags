@@ -552,6 +552,11 @@ export class QuizView {
         });
 
         if (this.currentScoreResult.guest && state.status === 'completed') {
+          const prevGuestBest = quizEngine.getGuestBestTime(state.gameMode);
+          if (prevGuestBest !== null) {
+            this.currentScoreResult.previousBestTimeSeconds = prevGuestBest;
+            this.currentScoreResult.timeDiffSeconds = state.elapsedSeconds - prevGuestBest;
+          }
           quizEngine.setGuestBestTime(state.gameMode, state.elapsedSeconds);
         }
       } catch (err) {
@@ -571,6 +576,35 @@ export class QuizView {
     const guestPB = quizEngine.getGuestBestTime(state.gameMode);
     const isPB = this.currentScoreResult?.isPersonalBest || (guestPB && guestPB === state.elapsedSeconds);
 
+    const diffSeconds = this.currentScoreResult?.timeDiffSeconds;
+    let diffMarkup = '';
+    if (isVictory && typeof diffSeconds === 'number') {
+      const absDiff = Math.abs(diffSeconds);
+      const m = Math.floor(absDiff / 60).toString().padStart(2, '0');
+      const s = (absDiff % 60).toString().padStart(2, '0');
+      const formattedDiff = `${m}:${s}`;
+
+      if (diffSeconds < 0) {
+        diffMarkup = `
+          <div class="modal-time-diff diff-improved" title="${t('diffFaster')}">
+            ▲ -${formattedDiff} (${t('diffFaster')})
+          </div>
+        `;
+      } else if (diffSeconds > 0) {
+        diffMarkup = `
+          <div class="modal-time-diff diff-worsened" title="${t('diffSlower')}">
+            ▼ +${formattedDiff} (${t('diffSlower')})
+          </div>
+        `;
+      } else {
+        diffMarkup = `
+          <div class="modal-time-diff diff-equal">
+            = 00:00 (${t('diffEqual')})
+          </div>
+        `;
+      }
+    }
+
     const overlay = document.createElement('div');
     overlay.id = 'results-modal-overlay';
     overlay.className = 'modal-overlay';
@@ -589,6 +623,7 @@ export class QuizView {
           <div class="modal-stat-box">
             <div class="modal-stat-num">${quizEngine.formatTime(state.elapsedSeconds)}</div>
             <div class="modal-stat-label">${t('modalTotalTime')}</div>
+            ${diffMarkup}
           </div>
           <div class="modal-stat-box">
             <div class="modal-stat-num">${state.guessedCodes.size} / ${state.totalInMode}</div>

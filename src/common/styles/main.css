@@ -1427,6 +1427,38 @@
   text-overflow: ellipsis;
 }
 
+.modal-time-diff {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-top: 6px;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.modal-time-diff.diff-improved {
+  color: var(--color-accent-green);
+  background: rgba(0, 245, 155, 0.12);
+  border: 1px solid rgba(0, 245, 155, 0.35);
+}
+
+.modal-time-diff.diff-worsened {
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+}
+
+.modal-time-diff.diff-equal {
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border-subtle);
+}
+
 .modal-banner-pb {
   background: rgba(0, 245, 155, 0.12);
   border: 1px solid var(--color-accent-green);

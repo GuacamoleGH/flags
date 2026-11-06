@@ -71,6 +71,9 @@ export const TRANSLATIONS = {
     modalPersonalBest: '¡Nuevo Récord Personal!',
     modalGuestNotice: 'Inicia sesión o crea una cuenta para registrar tu récord en el ranking global.',
     modalSaveScore: 'Guardar Récord',
+    diffFaster: 'mejor',
+    diffSlower: 'más lento',
+    diffEqual: 'igual',
 
     // Rankings
     leaderboardTitle: 'Clasificación Global',
@@ -177,6 +180,9 @@ export const TRANSLATIONS = {
     modalPersonalBest: 'New Personal Best!',
     modalGuestNotice: 'Log in or sign up to record your score on the global leaderboard.',
     modalSaveScore: 'Save Score',
+    diffFaster: 'faster',
+    diffSlower: 'slower',
+    diffEqual: 'equal',
 
     // Leaderboard
     leaderboardTitle: 'Global Leaderboard',
