@@ -29,10 +29,10 @@
   - Muestra tiempo transcurrido, aciertos (`X / 196`) y países pendientes.
   - Botones para iniciar, abandonar (revelar resultados) y reiniciar.
   - Pantalla final al terminar o abandonar con tiempo, países acertados, porcentaje y récord personal.
-- **REQ-06 · Soporte Bilingüe (Español / English):**
+- **REQ-06 · Soporte Bilingüe Flexible (Español / English):**
   - Selector de idioma en cabecera.
   - Cambiar de idioma no resetea la partida ni las respuestas acertadas.
-  - Traduce toda la UI y admite nombres y alias en el idioma seleccionado.
+  - Traduce toda la UI al idioma elegido y admite escribir las respuestas en la run indistintamente en español o en inglés (incluyendo nombres oficiales, alias y atajos compuestos de ambos idiomas).
 - **REQ-07 · Sistema de Usuarios y Autenticación:**
   - Registro e inicio de sesión local con contraseñas hasheadas (`bcryptjs`).
   - Sesiones seguras mediante JWT.

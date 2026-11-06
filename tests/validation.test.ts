@@ -31,12 +31,13 @@ describe('Country Dataset & Flag Association', () => {
   });
 });
 
-describe('Smart Answer Validation Engine', () => {
+describe('Smart Answer Validation Engine (Bilingual ES & EN)', () => {
   const spain = COUNTRIES_BY_CODE.get('es')!;
   const saoTome = COUNTRIES_BY_CODE.get('st')!;
   const northMacedonia = COUNTRIES_BY_CODE.get('mk')!;
   const usa = COUNTRIES_BY_CODE.get('us')!;
   const netherlands = COUNTRIES_BY_CODE.get('nl')!;
+  const germany = COUNTRIES_BY_CODE.get('de')!;
 
   it('normalizes diacritics, case, and whitespace', () => {
     expect(normalizeText('  España  ')).toBe('espana');
@@ -44,30 +45,29 @@ describe('Smart Answer Validation Engine', () => {
     expect(normalizeText('U.S.A.')).toBe('u s a');
   });
 
-  it('accepts exact name in Spanish with or without accents', () => {
+  it('accepts exact name in Spanish and English regardless of active language', () => {
+    // En modo Español: acepta español e inglés
     expect(validateCountryAnswer(spain, 'España', 'es').matched).toBe(true);
     expect(validateCountryAnswer(spain, 'espana', 'es').matched).toBe(true);
-    expect(validateCountryAnswer(spain, 'ESPAÑA', 'es').matched).toBe(true);
-  });
+    expect(validateCountryAnswer(spain, 'Spain', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(spain, 'spain', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(germany, 'Alemania', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(germany, 'Germany', 'es').matched).toBe(true);
 
-  it('enforces strict language isolation: Spanish rejects English names and vice versa', () => {
-    // Modo Español
-    expect(validateCountryAnswer(spain, 'España', 'es').matched).toBe(true);
-    expect(validateCountryAnswer(spain, 'espana', 'es').matched).toBe(true);
-    expect(validateCountryAnswer(spain, 'Spain', 'es').matched).toBe(false);
-    expect(validateCountryAnswer(spain, 'spain', 'es').matched).toBe(false);
-
-    // Modo Inglés
+    // En modo Inglés: acepta español e inglés
     expect(validateCountryAnswer(spain, 'Spain', 'en').matched).toBe(true);
     expect(validateCountryAnswer(spain, 'spain', 'en').matched).toBe(true);
-    expect(validateCountryAnswer(spain, 'España', 'en').matched).toBe(false);
-    expect(validateCountryAnswer(spain, 'espana', 'en').matched).toBe(false);
+    expect(validateCountryAnswer(spain, 'España', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(spain, 'espana', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(germany, 'Germany', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(germany, 'Alemania', 'en').matched).toBe(true);
   });
 
   it('REJECTS aggressive autocomplete/prefixes on simple country names', () => {
     expect(validateCountryAnswer(spain, 'esp', 'es').matched).toBe(false);
     expect(validateCountryAnswer(spain, 'Esp', 'es').matched).toBe(false);
     expect(validateCountryAnswer(spain, 'spa', 'en').matched).toBe(false);
+    expect(validateCountryAnswer(germany, 'ger', 'es').matched).toBe(false);
   });
 
   it('recognizes compound country smart shortcuts: Sao Tome -> São Tomé and Príncipe', () => {
@@ -77,27 +77,34 @@ describe('Smart Answer Validation Engine', () => {
 
     const resultEn = validateCountryAnswer(saoTome, 'sao tome', 'en');
     expect(resultEn.matched).toBe(true);
+    expect(resultEn.isCompoundShortcut).toBe(true);
   });
 
   it('recognizes compound country smart shortcuts: Macedonia -> North Macedonia', () => {
-    const result = validateCountryAnswer(northMacedonia, 'Macedonia', 'es');
-    expect(result.matched).toBe(true);
-    expect(result.isCompoundShortcut).toBe(true);
+    const resultEs = validateCountryAnswer(northMacedonia, 'Macedonia', 'es');
+    expect(resultEs.matched).toBe(true);
+    expect(resultEs.isCompoundShortcut).toBe(true);
+
+    const resultEn = validateCountryAnswer(northMacedonia, 'Macedonia', 'en');
+    expect(resultEn.matched).toBe(true);
+    expect(resultEn.isCompoundShortcut).toBe(true);
   });
 
-  it('strictly isolates acronyms and compound shortcuts by language', () => {
-    // USA / EEUU
+  it('accepts acronyms and compound shortcuts in both languages', () => {
+    // USA / EEUU en ambos idiomas
     expect(validateCountryAnswer(usa, 'USA', 'en').matched).toBe(true);
-    expect(validateCountryAnswer(usa, 'USA', 'es').matched).toBe(false);
+    expect(validateCountryAnswer(usa, 'USA', 'es').matched).toBe(true);
     expect(validateCountryAnswer(usa, 'EEUU', 'es').matched).toBe(true);
-    expect(validateCountryAnswer(usa, 'EEUU', 'en').matched).toBe(false);
-    expect(validateCountryAnswer(usa, 'United States', 'es').matched).toBe(false);
-    expect(validateCountryAnswer(usa, 'Estados Unidos', 'en').matched).toBe(false);
+    expect(validateCountryAnswer(usa, 'EEUU', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(usa, 'United States', 'es').matched).toBe(true);
+    expect(validateCountryAnswer(usa, 'Estados Unidos', 'en').matched).toBe(true);
 
-    // Holanda / Holland
+    // Holanda / Holland / Países Bajos / Netherlands
     expect(validateCountryAnswer(netherlands, 'Holanda', 'es').matched).toBe(true);
-    expect(validateCountryAnswer(netherlands, 'Holland', 'es').matched).toBe(false);
+    expect(validateCountryAnswer(netherlands, 'Holland', 'es').matched).toBe(true);
     expect(validateCountryAnswer(netherlands, 'Holland', 'en').matched).toBe(true);
-    expect(validateCountryAnswer(netherlands, 'Holanda', 'en').matched).toBe(false);
+    expect(validateCountryAnswer(netherlands, 'Holanda', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(netherlands, 'Paises Bajos', 'en').matched).toBe(true);
+    expect(validateCountryAnswer(netherlands, 'Netherlands', 'es').matched).toBe(true);
   });
 });

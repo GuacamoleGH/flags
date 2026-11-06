@@ -6,15 +6,15 @@
 // =============================================================================
 
 /**
- * @fileoverview Motor de normalización y validación precisa de respuestas y alias.
- * @spec REQ-03, REQ-04
+ * @fileoverview Motor de normalización y validación precisa de respuestas y alias bilingües.
+ * Permite responder en español o en inglés de manera fluida en cualquier modo.
+ * @spec REQ-03, REQ-04, REQ-06
  */
 
 import type { Country, SupportedLanguage, AnswerValidationResult } from '../common/types/country';
 
 /**
- * Mapeo estricto de atajos para países compuestos según el idioma activo.
- * Evita que atajos o nombres en inglés sean aceptados cuando el juego está en español y viceversa.
+ * Mapeo de atajos para países compuestos en español e inglés.
  */
 const COMPOUND_SHORT_BY_LANG: Record<string, { es: readonly string[]; en: readonly string[] }> = {
   ag: { es: ['antigua'], en: ['antigua'] },
@@ -77,17 +77,31 @@ export function normalizeText(text: string): string {
 }
 
 /**
+ * Obtiene todos los atajos reconocidos para un país compuesto (en español, inglés y configurados).
+ */
+function getCompoundShortcuts(country: Country): string[] {
+  if (!country.isCompound) return [];
+  const langShortcuts = COMPOUND_SHORT_BY_LANG[country.code];
+  const combined = [
+    ...(country.compoundShort ?? []),
+    ...(langShortcuts?.es ?? []),
+    ...(langShortcuts?.en ?? [])
+  ];
+  return Array.from(new Set(combined));
+}
+
+/**
  * Comprueba si la respuesta escrita por el usuario coincide con un país dado.
  *
- * Reglas estrictas:
- * 1. Coincidencia exacta con el nombre oficial en el idioma activo exclusivamente.
- * 2. Coincidencia exacta con cualquiera de los alias explícitos configurados para el idioma activo.
- * 3. En países compuestos, coincidencia con las abreviaciones inequívocas del idioma activo.
- * 4. NUNCA se aceptan respuestas en otro idioma ni prefijos parciales arbitrarios.
+ * Reglas:
+ * 1. Coincidencia exacta con el nombre oficial tanto en español como en inglés.
+ * 2. Coincidencia exacta con cualquiera de los alias configurados en español o en inglés.
+ * 3. En países compuestos, coincidencia con las abreviaciones inequívocas en español o en inglés.
+ * 4. NUNCA se aceptan prefijos parciales arbitrarios para países simples.
  *
  * @param country Objeto del país
  * @param rawInput Texto escrito por el usuario
- * @param lang Idioma actual de la interfaz ('es' | 'en')
+ * @param lang Idioma preferente de la interfaz ('es' | 'en') para determinar el nombre devuelto
  */
 export function validateCountryAnswer(
   country: Country,
@@ -99,35 +113,34 @@ export function validateCountryAnswer(
     return { matched: false };
   }
 
-  // 1. Obtener atajos válidos para países compuestos en el idioma activo
-  const langShortcuts = COMPOUND_SHORT_BY_LANG[country.code]?.[lang];
-  const activeShortcuts = country.isCompound
-    ? (langShortcuts ?? country.compoundShort)
-    : [];
-
-  const isCompoundShortcut = activeShortcuts.some(
+  // 1. Obtener atajos válidos para países compuestos (combinando ES y EN)
+  const allShortcuts = getCompoundShortcuts(country);
+  const isCompoundShortcut = allShortcuts.some(
     shortForm => normalizeText(shortForm) === normalizedInput
   );
 
-  // 2. Validar nombre principal en el idioma seleccionado
-  const primaryName = lang === 'es' ? country.nameEs : country.nameEn;
-  if (normalizeText(primaryName) === normalizedInput) {
-    return { matched: true, matchedName: primaryName, isCompoundShortcut };
+  // 2. Validar nombres oficiales (español e inglés)
+  if (normalizeText(country.nameEs) === normalizedInput) {
+    return { matched: true, matchedName: country.nameEs, isCompoundShortcut };
+  }
+  if (normalizeText(country.nameEn) === normalizedInput) {
+    return { matched: true, matchedName: country.nameEn, isCompoundShortcut };
   }
 
-  // 3. Validar alias oficiales configurados para el idioma activo
-  const activeAliases = lang === 'es' ? country.aliasesEs : country.aliasesEn;
-  for (const alias of activeAliases) {
+  // 3. Validar alias oficiales configurados en ambos idiomas
+  const allAliases = [...(country.aliasesEs || []), ...(country.aliasesEn || [])];
+  for (const alias of allAliases) {
     if (normalizeText(alias) === normalizedInput) {
       return { matched: true, matchedName: alias, isCompoundShortcut };
     }
   }
 
-  // 4. Validar atajo explícito según idioma activo
+  // 4. Validar atajo explícito compuesto
   if (isCompoundShortcut) {
+    const defaultDisplayName = lang === 'en' ? country.nameEn : country.nameEs;
     return {
       matched: true,
-      matchedName: primaryName,
+      matchedName: defaultDisplayName,
       isCompoundShortcut: true
     };
   }
@@ -137,12 +150,12 @@ export function validateCountryAnswer(
 
 /**
  * Busca sugerencias visuales entre los países aún no acertados.
- * Requiere un mínimo de 3 caracteres y busca únicamente en el idioma activo.
+ * Requiere un mínimo de 3 caracteres y busca tanto en español como en inglés.
  */
 export function getCountrySuggestions(
   rawInput: string,
   unansweredCountries: readonly Country[],
-  lang: SupportedLanguage = 'es',
+  _lang: SupportedLanguage = 'es',
   maxResults = 5
 ): Country[] {
   const normalizedInput = normalizeText(rawInput);
@@ -152,25 +165,28 @@ export function getCountrySuggestions(
 
   const results: Country[] = [];
   for (const country of unansweredCountries) {
-    const primaryName = normalizeText(lang === 'es' ? country.nameEs : country.nameEn);
-    if (primaryName.startsWith(normalizedInput)) {
+    const matchName =
+      normalizeText(country.nameEs).startsWith(normalizedInput) ||
+      normalizeText(country.nameEn).startsWith(normalizedInput);
+
+    if (matchName) {
       results.push(country);
       if (results.length >= maxResults) break;
       continue;
     }
 
-    const activeAliases = lang === 'es' ? country.aliasesEs : country.aliasesEn;
-    const matchAlias = activeAliases.some(alias => normalizeText(alias).startsWith(normalizedInput));
+    const allAliases = [...(country.aliasesEs || []), ...(country.aliasesEn || [])];
+    const matchAlias = allAliases.some(alias => normalizeText(alias).startsWith(normalizedInput));
     if (matchAlias) {
       results.push(country);
       if (results.length >= maxResults) break;
       continue;
     }
 
-    // Comprobar atajos de compuestos según idioma activo
+    // Comprobar atajos de compuestos bilingües
     if (country.isCompound) {
-      const activeShortcuts = COMPOUND_SHORT_BY_LANG[country.code]?.[lang] ?? [];
-      const matchShort = activeShortcuts.some(s => normalizeText(s).startsWith(normalizedInput));
+      const allShortcuts = getCompoundShortcuts(country);
+      const matchShort = allShortcuts.some(s => normalizeText(s).startsWith(normalizedInput));
       if (matchShort) {
         results.push(country);
         if (results.length >= maxResults) break;
