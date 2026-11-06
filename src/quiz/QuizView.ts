@@ -249,7 +249,7 @@ export class QuizView {
   }
 
   private renderActionsHtml(status: string): string {
-    if (status === 'running') {
+    if (status === 'running' || status === 'idle') {
       return `
         <div class="running-actions-group">
           <button class="quiz-btn-danger" id="btn-action-giveup" title="${t('btnGiveUp')}">
@@ -269,8 +269,8 @@ export class QuizView {
       `;
     }
     return `
-      <button class="btn-primary btn-quiz-action" id="btn-action-start">
-        ▶ ${t('btnStart')}
+      <button class="btn-primary btn-quiz-action" id="btn-action-again">
+        ↺ ${t('btnPlayAgain')}
       </button>
     `;
   }
@@ -304,8 +304,6 @@ export class QuizView {
     };
 
     input?.addEventListener('keydown', (e) => {
-      quizEngine.ensureRunningOnTyping();
-
       if (e.key === 'Tab') {
         e.preventDefault();
         if (e.shiftKey) {
@@ -318,13 +316,26 @@ export class QuizView {
 
       if (e.key === 'Enter') {
         e.preventDefault();
+        quizEngine.ensureRunningOnTyping();
         handleAnswerSubmission();
-      } else if (e.key === 'ArrowRight' && (e.ctrlKey || e.altKey || input.value === '')) {
+        return;
+      }
+
+      if (e.key === 'ArrowRight' && (e.ctrlKey || e.altKey || input.value === '')) {
         e.preventDefault();
         quizEngine.nextFlag();
-      } else if (e.key === 'ArrowLeft' && (e.ctrlKey || e.altKey || input.value === '')) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft' && (e.ctrlKey || e.altKey || input.value === '')) {
         e.preventDefault();
         quizEngine.prevFlag();
+        return;
+      }
+
+      // Iniciar el temporizador al escribir cualquier caracter válido
+      if (!['Shift', 'Control', 'Alt', 'Meta', 'Escape', 'CapsLock', 'Tab'].includes(e.key)) {
+        quizEngine.ensureRunningOnTyping();
       }
     });
 
@@ -386,7 +397,6 @@ export class QuizView {
     this.container.querySelector('#btn-action-again')?.addEventListener('click', () => {
       this.resetResultModalState();
       quizEngine.restart();
-      quizEngine.start();
       this.render();
       this.focusInput();
     });
@@ -673,7 +683,6 @@ export class QuizView {
       this.closeResultsModal();
       this.resetResultModalState();
       quizEngine.restart();
-      quizEngine.start();
       this.render();
       this.focusInput();
     });
