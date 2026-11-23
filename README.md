@@ -1,13 +1,12 @@
 <div align="center">
   <img src="logo.png" width="100" height="100" alt="GuacamoleGH Flags Logo" style="border-radius: 16px; margin-bottom: 12px;" />
   <h1>🏳️ GuacamoleGH Flags — Country Flag Quiz</h1>
-  <p><strong>Quiz interactivo bilingüe de banderas de los 196 países oficiales del mundo para el homelab GuacamoleGH</strong></p>
+  <p><strong>Quiz interactivo bilingüe de banderas de los 196 países oficiales del mundo para el ecosistema GuacamoleGH</strong></p>
   <p>
     <img src="https://img.shields.io/badge/status-v1.0.0%20(196%20Banderas)-00f59b?style=flat-square" alt="Status" />
     <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" />
     <img src="https://img.shields.io/badge/methodology-DBV%20Specs%20Ops%20v3.2.0-00d9c4?style=flat-square" alt="Methodology" />
     <img src="https://img.shields.io/badge/tests-17%20passing-00d9c4?style=flat-square" alt="Tests" />
-    <img src="https://img.shields.io/badge/docker-homelab%20ready-38bdf8?style=flat-square" alt="Docker" />
   </p>
 </div>
 
@@ -24,7 +23,6 @@
 - [🧠 Autocompletado Inteligente y Validación de Alias](#validation)
 - [👤 Sistema de Cuentas, Rankings y Perfiles](#users)
 - [🛡️ Anti-Trampas Heurístico](#anticheat)
-- [🏠 Despliegue en Homelab (Docker Compose)](#homelab)
 - [🛠️ Stack Tecnológico](#stack)
 - [⚙️ Instalación y Desarrollo Local](#development)
 - [🧪 Pruebas y Calidad](#testing)
@@ -37,7 +35,7 @@
 
 **GuacamoleGH Flags** es una aplicación web interactiva diseñada para desafiar el conocimiento geográfico mundial reconociendo las **196 banderas oficiales del planeta** en el menor tiempo posible.
 
-Diseñada bajo la identidad visual tecnológica del homelab GuacamoleGH (gama carbón `#0c0e12` con acentos verde neón `#00f59b` y turquesa digital `#00d9c4`), ofrece una experiencia ágil, horizontal y fluida tanto en navegadores de escritorio como en dispositivos táctiles móviles.
+Diseñada bajo la identidad visual tecnológica del ecosistema GuacamoleGH (gama carbón `#0c0e12` con acentos verde neón `#00f59b` y turquesa digital `#00d9c4`), ofrece una experiencia ágil, horizontal y fluida tanto en navegadores de escritorio como en dispositivos táctiles móviles.
 
 ---
 
@@ -168,21 +166,6 @@ El backend Express valida estrictamente las puntuaciones antes de registrarlas e
 
 ---
 
-<a name="homelab"></a>
-## 🏠 Despliegue en Homelab (Docker Compose)
-
-Diseñado para desplegarse de forma soberana detrás de Traefik, Caddy o Nginx en el subdominio `flags.guacamolegh.es`.
-
-```bash
-docker compose up -d --build
-```
-
-- **Puerto por defecto:** `${PORT:-3095}:3000`
-- **Healthcheck:** `GET http://localhost:3095/api/health`
-- **Volumen persistente:** `./data:/app/data` (base de datos `flags.db` en SQLite con modo WAL y secreto de firma).
-
----
-
 <a name="stack"></a>
 ## 🛠️ Stack Tecnológico
 
@@ -193,7 +176,6 @@ docker compose up -d --build
 | **Base de Datos** | SQLite (`node:sqlite DatabaseSync`) en modo WAL |
 | **Seguridad** | `bcryptjs` + JWT |
 | **Testing** | Vitest + Happy-DOM (17 pruebas automatizadas) |
-| **Contenedores** | Docker multi-stage + Docker Compose |
 
 ---
 
@@ -204,7 +186,7 @@ docker compose up -d --build
 # 1. Instalar dependencias
 npm install
 
-# 2. Iniciar servidor de desarrollo (backend + API)
+# 2. Iniciar entorno de desarrollo (backend + API)
 npm run dev:all
 
 # 3. Compilar producción y verificar tipos
